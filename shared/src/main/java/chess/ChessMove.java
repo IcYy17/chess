@@ -8,22 +8,29 @@ package chess;
  */
 public class ChessMove {
 
+
+    private ChessPosition startPos;
+    private ChessPosition endPos;
+    private ChessPiece.PieceType promotionPiece;
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
+        this.startPos = startPosition;
+        this.endPos = endPosition;
+        this.promotionPiece = promotionPiece;
     }
 
     /**
      * @return ChessPosition of starting location
      */
     public ChessPosition getStartPosition() {
-        throw new RuntimeException("Not implemented");
+        return startPos;
     }
 
     /**
      * @return ChessPosition of ending location
      */
     public ChessPosition getEndPosition() {
-        throw new RuntimeException("Not implemented");
+        return endPos;
     }
 
     /**
@@ -33,6 +40,6 @@ public class ChessMove {
      * @return Type of piece to promote a pawn to, or null if no promotion
      */
     public ChessPiece.PieceType getPromotionPiece() {
-        throw new RuntimeException("Not implemented");
+        return promotionPiece;
     }
 }
