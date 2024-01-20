@@ -34,6 +34,8 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return squares[position.getRow()][position.getColumn()];
+
+
     }
 
     /**
@@ -43,8 +45,8 @@ public class ChessBoard {
     public void resetBoard() {
         int row;
         int col;
-        for (row = 0; row < 8; row++){
-            for (col = 0; col < 8; col ++){
+        for (row = 1; row < 8; row++){
+            for (col = 1; col < 8; col ++){
                 squares[row][col] = null;
             }
         }
