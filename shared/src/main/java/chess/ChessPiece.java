@@ -99,8 +99,8 @@ public class ChessPiece {
             for (int [] move: kingDirections){
                 row = myPosition.getRow() + move[0];
                 col = myPosition.getColumn() + move[1];
-                if(isLegalMove(board, row, col)){
-                    legalMoves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                if(isLegalMove(board, row+1, col+1)){
+                    legalMoves.add(new ChessMove(myPosition, new ChessPosition(row+1, col+1), null));
 
                 }
             }
