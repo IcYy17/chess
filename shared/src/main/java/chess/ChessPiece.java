@@ -28,7 +28,7 @@ public class ChessPiece {
     private ChessGame.TeamColor color;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        this.color = color;
+        this.color = pieceColor;
         this.type = type;
     }
 
@@ -66,6 +66,53 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return new ArrayList<>();
+        Collection<ChessMove> availableMoves = new ArrayList<>();
+        switch (type) {
+            case KING:
+                availableMoves.addAll(kingMoveSet(board, myPosition));
+                break;
+//            case QUEEN:
+//                return queenMoveSet(board, myPosition);
+//            case ROOK:
+//                return rookMoveSet(board, myPosition);
+//            case KNIGHT:
+//                return knightMoveSet(board, myPosition);
+//            case BISHOP:
+//                return bishopMoveSet(board, myPosition);
+//            case PAWN:
+//                return pawnMoveSet(board, myPosition);
+        }
+        return availableMoves;
     }
+    private boolean isLegalMove(ChessBoard board, int row, int col){
+        if (row > 8 || row < 1 || col > 8  || col < 1){
+            return false;
+        }
+        ChessPiece square = board.getPiece(new ChessPosition(row, col));
+        return square == null || square.getTeamColor() != this.color;
+    }
+        private Collection<ChessMove> kingMoveSet(ChessBoard board, ChessPosition myPosition){
+            int [][] kingDirections = {{1,1},{1, -1}, {-1, 1},{-1,-1},{1, 0},{0,1},{0,-1},{-1,0}};
+            Collection<ChessMove> legalMoves = new ArrayList<>();
+            int row;
+            int col;
+            for (int [] move: kingDirections){
+                row = myPosition.getRow() + move[0];
+                col = myPosition.getColumn() + move[1];
+                if(isLegalMove(board, row, col)){
+                    legalMoves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+
+                }
+            }
+            return legalMoves;
+
+        }
+
+//        private Collection<ChessMove> queenMoveSet(ChessBoard board, ChessPosition myPosition) {
+//            Collection<ChessMove> legalMoves = new ArrayList<>();
+//
+//        }
+
+
+
 }
