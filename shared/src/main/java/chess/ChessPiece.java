@@ -74,8 +74,9 @@ public class ChessPiece {
             case QUEEN:
                 availableMoves.addAll(queenMoveSet(board, myPosition));
                 break;
-//            case ROOK:
-//                return rookMoveSet(board, myPosition);
+            case ROOK:
+                availableMoves.addAll(rookMoveSet(board, myPosition));
+                break;
 //            case KNIGHT:
 //                return knightMoveSet(board, myPosition);
 //            case BISHOP:
@@ -117,7 +118,7 @@ public class ChessPiece {
             for (int [] move: queenDirections){
                 for(numSpaces = 1; numSpaces <=8; numSpaces++){
                     row = myPosition.getRow() + move[0] * numSpaces;
-                    col = myPosition.getRow() + move[1]*numSpaces;
+                    col = myPosition.getColumn() + move[1]*numSpaces;
 
 
                     if( !isLegalMove(board, row +1, col +1)){
@@ -131,6 +132,31 @@ public class ChessPiece {
                 }
             }
             return legalMoves;
+        }
+        private Collection<ChessMove> rookMoveSet(ChessBoard board, ChessPosition myPosition) {
+            int [][] rookDirections = {{-1, 0}, {1, 0}, {0,1}, {0,-1}};
+            Collection<ChessMove> legalMoves = new ArrayList<>();
+            int row;
+            int col;
+            int numSpaces;
+            for (int [] move: rookDirections){
+                for(numSpaces = 1; numSpaces <=8; numSpaces++){
+                    row = myPosition.getRow() + move[0] * numSpaces;
+                    col = myPosition.getColumn() + move[1]*numSpaces;
+
+
+                    if( !isLegalMove(board, row +1, col +1)){
+                        break;
+                    }
+                    legalMoves.add(new ChessMove(myPosition,new ChessPosition(row +1, col +1),null));
+                    ChessPiece pieceAlreadyThere = board.getPiece(new ChessPosition(row +1, col +1));
+                    if (pieceAlreadyThere != null){
+                        break;
+                    }
+                }
+            }
+            return legalMoves;
+
         }
 
 
