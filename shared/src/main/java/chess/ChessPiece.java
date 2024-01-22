@@ -237,7 +237,7 @@ public class ChessPiece {
                     break;
                 }
 
-                if (isLegalMove(board, row, col) && (pieceAlreadyThere == null) || pieceAlreadyThere.getTeamColor() != this.color) {
+                if (isLegalMove(board, row, col) && (pieceAlreadyThere == null || pieceAlreadyThere.getTeamColor() != this.color)) {
                     legalMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col + 1), null));
                 }
             }
