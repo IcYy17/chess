@@ -68,6 +68,12 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> availableMoves = new ArrayList<>();
         switch (type) {
+            case BISHOP:
+                availableMoves.addAll(bishopMoveSet(board, myPosition));
+                break;
+            case PAWN:
+                availableMoves.addAll(pawnMoveSet(board, myPosition));
+                break;
             case KING:
                 availableMoves.addAll(kingMoveSet(board, myPosition));
                 break;
@@ -77,12 +83,10 @@ public class ChessPiece {
             case ROOK:
                 availableMoves.addAll(rookMoveSet(board, myPosition));
                 break;
-//            case KNIGHT:
-//                return knightMoveSet(board, myPosition);
-//            case BISHOP:
-//                return bishopMoveSet(board, myPosition);
-//            case PAWN:
-//                return pawnMoveSet(board, myPosition);
+            case KNIGHT:
+                availableMoves.addAll(knightMoveSet(board, myPosition));
+                break;
+
         }
         return availableMoves;
     }
@@ -93,6 +97,61 @@ public class ChessPiece {
         ChessPiece square = board.getPiece(new ChessPosition(row, col));
         return square == null || square.getTeamColor() != this.color;
     }
+
+    private Collection<ChessMove> bishopMoveSet(ChessBoard board, ChessPosition myPosition) {
+        int [][] bishopDirections = {{1,1}, {-1,1},{1, -1}, {-1, -1}};
+        Collection<ChessMove> legalMoves = new ArrayList<>();
+        int row;
+        int col;
+        int numSpaces;
+        for (int [] move: bishopDirections){
+            for(numSpaces = 1; numSpaces <=8; numSpaces++){
+                row = myPosition.getRow() + move[0] * numSpaces;
+                col = myPosition.getColumn() + move[1]*numSpaces;
+
+
+                if( !isLegalMove(board, row +1, col +1)){
+                    break;
+                }
+                legalMoves.add(new ChessMove(myPosition,new ChessPosition(row +1, col +1),null));
+                ChessPiece pieceAlreadyThere = board.getPiece(new ChessPosition(row +1, col +1));
+                if (pieceAlreadyThere != null){
+                    break;
+                }
+            }
+        }
+        return legalMoves;
+    }
+
+
+    /**
+     * pawns need a lot of work.
+     */
+    private Collection<ChessMove> pawnMoveSet(ChessBoard board, ChessPosition myPosition) {
+        int [][] pawnDirections = {{0,1}, {1,0},{1, -1}, {-1, -1}};
+        Collection<ChessMove> legalMoves = new ArrayList<>();
+        int row;
+        int col;
+        int numSpaces;
+        for (int [] move: pawnDirections){
+            for(numSpaces = 1; numSpaces <=8; numSpaces++){
+                row = myPosition.getRow() + move[0] * numSpaces;
+                col = myPosition.getColumn() + move[1]*numSpaces;
+
+
+                if( !isLegalMove(board, row +1, col +1)){
+                    break;
+                }
+                legalMoves.add(new ChessMove(myPosition,new ChessPosition(row +1, col +1),null));
+                ChessPiece pieceAlreadyThere = board.getPiece(new ChessPosition(row +1, col +1));
+                if (pieceAlreadyThere != null){
+                    break;
+                }
+            }
+        }
+        return legalMoves;
+    }
+
         private Collection<ChessMove> kingMoveSet(ChessBoard board, ChessPosition myPosition){
             int [][] kingDirections = {{1,1},{1, -1}, {-1, 1},{-1,-1},{1, 0},{0,1},{0,-1},{-1,0}};
             Collection<ChessMove> legalMoves = new ArrayList<>();
@@ -158,6 +217,35 @@ public class ChessPiece {
             return legalMoves;
 
         }
+    private Collection<ChessMove> knightMoveSet(ChessBoard board, ChessPosition myPosition) {
+        int[][] knightDirections = {{2, 1}, {-1, 2}, {2, -1}, {-2, -1}, {1, 2}, {-2, 1}, {1, -2}, {-1, -2}};
+        Collection<ChessMove> legalMoves = new ArrayList<>();
+        int row;
+        int col;
+        int numSpaces;
+        for (int[] move : knightDirections) {
+            for (numSpaces = 1; numSpaces <= 8; numSpaces++) {
+                row = myPosition.getRow() + move[0];
+                col = myPosition.getColumn() + move[1];
+
+                if (!isLegalMove(board, row + 1, col + 1)) {
+                    break;
+                }
+                legalMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col + 1), null));
+                ChessPiece pieceAlreadyThere = board.getPiece(new ChessPosition(row + 1, col + 1));
+                if (pieceAlreadyThere != null) {
+                    break;
+                }
+
+                if (isLegalMove(board, row, col) && (pieceAlreadyThere == null) || pieceAlreadyThere.getTeamColor() != this.color) {
+                    legalMoves.add(new ChessMove(myPosition, new ChessPosition(row + 1, col + 1), null));
+                }
+            }
+
+        }
+        return legalMoves;
+    }
+
 
 
 
