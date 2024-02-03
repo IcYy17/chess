@@ -13,10 +13,21 @@ public class ChessGame {
 
     private ChessBoard chessBoard;
     private TeamColor turn;
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        ChessGame chessGame = (ChessGame) object;
+        return Objects.deepEquals(chessBoard, chessGame.chessBoard) && turn == chessGame.turn;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(chessBoard, turn);
+    }
 
     public ChessGame() {
         chessBoard = new ChessBoard();
-        turn = TeamColor.WHITE;
         chessBoard.resetBoard();
     }
 
@@ -77,18 +88,24 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = chessBoard.getPiece(move.getStartPosition());
         if (piece != null && piece.getTeamColor() == turn) {
-            Collection<ChessMove> validMoves = getValidMoves(move.getStartPosition());
+            Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
 
             if (validMoves != null && validMoves.contains(move)) {
-                chessBoard.addPiece(move.getEndPosition(), piece);
-                chessBoard.addPiece(move.getStartPosition(), null);
+                if (move.getPromotionPiece() != null) {
+                    ChessPiece promoPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+                    this.chessBoard.addPiece(move.getEndPosition(), promoPiece);
+                }
+                else {
+                    this.chessBoard.addPiece(move.getEndPosition(), piece);
+                }
+                this.chessBoard.addPiece(move.getStartPosition(), null);
                 switchTurn();
-            } else {
-                throw new InvalidMoveException("Invalid move");
             }
-        } else {
+        }
+
+        else {
             throw new InvalidMoveException("Invalid move");
-        };
+        }
     }
 
     /**
@@ -140,16 +157,5 @@ public class ChessGame {
         return chessBoard;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) return true;
-        if (object == null || getClass() != object.getClass()) return false;
-        ChessGame chessGame = (ChessGame) object;
-        return Objects.deepEquals(chessBoard, chessGame.chessBoard) && turn == chessGame.turn;
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(chessBoard, turn);
-    }
 }
