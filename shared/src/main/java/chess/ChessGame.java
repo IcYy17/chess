@@ -13,24 +13,24 @@ import java.util.Objects;
  */
 public class ChessGame {
 
-    private ChessBoard chessBoard;
+    private ChessBoard board;
     private TeamColor turn;
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
         ChessGame chessGame = (ChessGame) object;
-        return Objects.deepEquals(chessBoard, chessGame.chessBoard) && turn == chessGame.turn;
+        return Objects.deepEquals(board, chessGame.board) && turn == chessGame.turn;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(chessBoard, turn);
+        return Objects.hash(board, turn);
     }
 
     public ChessGame() {
-        chessBoard = new ChessBoard();
-        chessBoard.resetBoard();
+        board = new ChessBoard();
+        board.resetBoard();
     }
 
     /**
@@ -67,8 +67,8 @@ public class ChessGame {
 
 
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        ChessPiece simPiece = chessBoard.getPiece(startPosition);
-        Collection<ChessMove> simMoves = simPiece.pieceMoves(chessBoard, startPosition);
+        ChessPiece simPiece = board.getPiece(startPosition);
+        Collection<ChessMove> simMoves = simPiece.pieceMoves(board, startPosition);
         Collection<ChessMove> isLegalMove = new ArrayList<>();
 
 
@@ -76,23 +76,23 @@ public class ChessGame {
             return Collections.emptyList();
         }
 
-        for (ChessMove move : simMoves) {
+        for (ChessMove moves : simMoves) {
 
-            ChessPiece checkPiece = chessBoard.getPiece(move.getEndPosition());
-            chessBoard.addPiece(move.getEndPosition(), simPiece);
-            chessBoard.addPiece(move.getStartPosition(), null);
+            ChessPiece checkPiece = board.getPiece(moves.getEndPosition());
+            board.addPiece(moves.getEndPosition(), simPiece);
+            board.addPiece(moves.getStartPosition(), null);
 
             if (!isInCheck(simPiece.getTeamColor())) {
-                isLegalMove.add(move);
+                isLegalMove.add(moves);
             }
-            chessBoard.addPiece(move.getStartPosition(), simPiece);
-            chessBoard.addPiece(move.getEndPosition(), checkPiece);
+            board.addPiece(moves.getStartPosition(), simPiece);
+            board.addPiece(moves.getEndPosition(), checkPiece);
         }
         return isLegalMove;
     }
 
 
-    private void switchTurn() {
+    private void changeTurn() {
         turn = (turn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
@@ -103,41 +103,35 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        ChessPiece movingPiece = board.getPiece(move.getStartPosition());
 
-        ChessPiece piece = chessBoard.getPiece(move.getStartPosition());
-
-        if (piece != null && piece.getTeamColor() == turn) {
-
-            Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
-
-            if (validMoves != null && validMoves.contains(move)) {
-
-                if (move.getPromotionPiece() != null) {
-                    ChessPiece promotedPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
-                    this.chessBoard.addPiece(move.getEndPosition(), promotedPiece);
-                }
-
-                else {
-                    this.chessBoard.addPiece(move.getEndPosition(), piece);
-                }
-                this.chessBoard.addPiece(move.getStartPosition(), null);
-
-                if (isInCheck(turn)) {
-                    this.chessBoard.addPiece(move.getEndPosition(), null);
-                    this.chessBoard.addPiece(move.getStartPosition(), piece);
-                    throw new InvalidMoveException("King is still in check");
-                } // Check if the move puts the king in check
-
-                switchTurn();
-            }
-            else {
-                throw new InvalidMoveException("Invalid move");
-            }
+        if (movingPiece == null || movingPiece.getTeamColor() != turn) {
+            throw new InvalidMoveException("Invalid move.");
         }
-        else {
-            throw new InvalidMoveException("Invalid move");
+
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+        if (!validMoves.contains(move)) {
+            throw new InvalidMoveException("Invalid move: Move not permitted.");
         }
+
+        ChessPiece endPiece = board.getPiece(move.getEndPosition());
+        board.addPiece(move.getEndPosition(), movingPiece);
+        board.addPiece(move.getStartPosition(), null);
+
+        if (isInCheck(turn)) {
+
+            board.addPiece(move.getStartPosition(), movingPiece);
+            board.addPiece(move.getEndPosition(), endPiece);
+            throw new InvalidMoveException("Invalid move: King in Check.");
+        }
+
+        if (move.getPromotionPiece() != null) {
+            board.addPiece(move.getEndPosition(), new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece()));
+        }
+
+        changeTurn();
     }
+
 
     /**
      * Determines if the given team is in check
@@ -145,19 +139,18 @@ public class ChessGame {
      * @param teamColor which team to check for check
      * @return True if the specified team is in check
      */
-    private ChessPosition findKing(TeamColor teamColor){
-        int row;
-        int col;
-        for (row = 0; row < 8; row++){
-            for (col = 0; col <8; col++){
-                ChessPiece allPieces = chessBoard.getPiece(new ChessPosition(row+1,col+1));
-                if(allPieces !=null && allPieces.getPieceType() == ChessPiece.PieceType.KING && allPieces.getTeamColor() == teamColor){
-                    return new ChessPosition(row+1,col+1);
+    private ChessPosition findKing(TeamColor teamColor) {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                ChessPiece piece = board.getPiece(new ChessPosition(r + 1, c + 1));
+                if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.getTeamColor() == teamColor) {
+                    return new ChessPosition(r + 1, c + 1);
                 }
             }
         }
         return null;
     }
+
 
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition position = findKing(teamColor);
@@ -169,10 +162,12 @@ public class ChessGame {
         for(row = 0;row<8;row++){
             for (col = 0;col<8;col++){
                 ChessPosition newPosition = new ChessPosition(row+1,col+1);
-                ChessPiece newPiece = chessBoard.getPiece(newPosition);
+                ChessPiece newPiece = board.getPiece(newPosition);
                 if(newPiece != null && newPiece.getTeamColor() != teamColor){
-                    Collection<ChessMove> checkMoves = newPiece.pieceMoves(chessBoard,newPosition);
-                    for(ChessMove move: checkMoves){
+                    Collection<ChessMove> check = newPiece.pieceMoves(board,newPosition);
+
+                    for(ChessMove move: check){
+
                         if(move.getEndPosition().equals(position)){
                             return true;
                         }
@@ -191,7 +186,7 @@ public class ChessGame {
         for (row = 0; row < 8; row++) {
             for (col = 0; col < 8; col++) {
 
-                ChessPiece newPiece = chessBoard.getPiece(new ChessPosition(row + 1, col + 1));
+                ChessPiece newPiece = board.getPiece(new ChessPosition(row + 1, col + 1));
 
                 if (newPiece != null && newPiece.getTeamColor() == teamColor) {
 
@@ -208,29 +203,26 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) {
-            Collection<ChessPosition> allPossible = simAllPieces(teamColor);
+        if (!isInCheck(teamColor)) return false;
+        for (ChessPosition position : simAllPieces(teamColor)) {
+            for (ChessMove move : validMoves(position)) {
 
-            for (ChessPosition newPosition : allPossible) {
-                Collection<ChessMove> legalMoves = validMoves(newPosition);
+                ChessPiece movingPiece = board.getPiece(move.getStartPosition());
+                ChessPiece targetPos = board.getPiece(move.getEndPosition());
+                board.addPiece(move.getEndPosition(), movingPiece);
+                board.addPiece(move.getStartPosition(), null);
 
-                for (ChessMove move : legalMoves) {
-
-                    ChessBoard simBoard = new ChessBoard();
-
-                    ChessPiece simPiece = simBoard.getPiece(move.getStartPosition());
-                    simBoard.addPiece(move.getEndPosition(), simPiece);
-                    simBoard.addPiece(move.getStartPosition(), null);
-
-
-                    if (!isInCheck(teamColor)) {
-                        return false;
-                    }
+                if (!isInCheck(teamColor)) {
+                    board.addPiece(move.getStartPosition(), movingPiece);
+                    board.addPiece(move.getEndPosition(), targetPos);
+                    return false;
                 }
+
+                board.addPiece(move.getStartPosition(), movingPiece);
+                board.addPiece(move.getEndPosition(), targetPos);
             }
-            return true;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -255,10 +247,10 @@ public class ChessGame {
     /**
      * Sets this game's chessboard with a given board
      *
-     * @param board the new board to use
+     * @param newBoard the new board to use
      */
-    public void setBoard(ChessBoard board) {
-        chessBoard = board;
+    public void setBoard(ChessBoard newBoard) {
+        board = newBoard;
     }
 
     /**
@@ -267,7 +259,7 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        return chessBoard;
+        return board;
     }
 
 
