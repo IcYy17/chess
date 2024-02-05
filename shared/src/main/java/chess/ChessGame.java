@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -66,12 +67,30 @@ public class ChessGame {
 
 
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        ChessPiece piece = chessBoard.getPiece(startPosition);
-        if (piece != null) {
-            return piece.pieceMoves(chessBoard, startPosition);
+        ChessPiece simPiece = chessBoard.getPiece(startPosition);
+        Collection<ChessMove> simMoves = simPiece.pieceMoves(chessBoard, startPosition);
+        Collection<ChessMove> isLegalMove = new ArrayList<>();
+
+
+        if (simPiece == null) {
+            return Collections.emptyList();
         }
-        return null;
+
+        for (ChessMove move : simMoves) {
+
+            ChessPiece checkPiece = chessBoard.getPiece(move.getEndPosition());
+            chessBoard.addPiece(move.getEndPosition(), simPiece);
+            chessBoard.addPiece(move.getStartPosition(), null);
+
+            if (!isInCheck(simPiece.getTeamColor())) {
+                isLegalMove.add(move);
+            }
+            chessBoard.addPiece(move.getStartPosition(), simPiece);
+            chessBoard.addPiece(move.getEndPosition(), checkPiece);
+        }
+        return isLegalMove;
     }
+
 
     private void switchTurn() {
         turn = (turn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
