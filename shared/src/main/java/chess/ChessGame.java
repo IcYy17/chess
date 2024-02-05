@@ -64,16 +64,13 @@ public class ChessGame {
      * startPosition
      */
 
-    public Collection<ChessMove> getValidMoves(ChessPosition startPosition) {
+
+    public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = chessBoard.getPiece(startPosition);
         if (piece != null) {
             return piece.pieceMoves(chessBoard, startPosition);
         }
         return null;
-    }
-
-    public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        return getValidMoves(startPosition);
     }
 
     private void switchTurn() {
@@ -87,28 +84,37 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPiece newPiece = chessBoard.getPiece(move.getStartPosition());
 
-        if (newPiece!= null && newPiece.getTeamColor() == turn) {
+        ChessPiece piece = chessBoard.getPiece(move.getStartPosition());
+
+        if (piece != null && piece.getTeamColor() == turn) {
 
             Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
 
             if (validMoves != null && validMoves.contains(move)) {
 
                 if (move.getPromotionPiece() != null) {
-                    ChessPiece promoPiece = new ChessPiece(newPiece.getTeamColor(), move.getPromotionPiece());
-                    this.chessBoard.addPiece(move.getEndPosition(), promoPiece);
+                    ChessPiece promotedPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+                    this.chessBoard.addPiece(move.getEndPosition(), promotedPiece);
                 }
 
                 else {
-                    this.chessBoard.addPiece(move.getEndPosition(), newPiece);
+                    this.chessBoard.addPiece(move.getEndPosition(), piece);
                 }
-
                 this.chessBoard.addPiece(move.getStartPosition(), null);
+
+                if (isInCheck(turn)) {
+                    this.chessBoard.addPiece(move.getEndPosition(), null);
+                    this.chessBoard.addPiece(move.getStartPosition(), piece);
+                    throw new InvalidMoveException("King is still in check");
+                } // Check if the move puts the king in check
+
                 switchTurn();
             }
+            else {
+                throw new InvalidMoveException("Invalid move");
+            }
         }
-
         else {
             throw new InvalidMoveException("Invalid move");
         }
