@@ -2,7 +2,11 @@ package server;
 
 import spark.*;
 
+
 public class Server {
+    private UserDataService userDataService;
+    private GameService gameService;
+    private AuthService authService;
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
