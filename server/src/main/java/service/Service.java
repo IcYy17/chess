@@ -1,4 +1,4 @@
-package Service;
+package service;
 
 import model.User;
 import dataAccess.UserDataAccess;
@@ -14,6 +14,5 @@ public class UserDataService {
 
         userDataAccess.createUser(user);
     }
-
 
 }

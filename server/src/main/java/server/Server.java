@@ -2,18 +2,14 @@ package server;
 
 import spark.*;
 
-
 public class Server {
-    private UserDataService userDataService;
-    private GameService gameService;
-    private AuthService authService;
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
 
-        // Register your endpoints and handle exceptions here.
+        endpoints();
 
         Spark.awaitInitialization();
         return Spark.port();
@@ -22,5 +18,16 @@ public class Server {
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
+    }
+
+    private void endpoints() {
+        Spark.post("/user", (request, response) -> {
+            return "User registration endpoint";
+        });
+
+        Spark.post("/session", (request, response) -> {
+            return "User login endpoint";
+        });
+
     }
 }
