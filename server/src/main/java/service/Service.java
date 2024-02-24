@@ -4,15 +4,14 @@ import model.User;
 import dataAccess.UserDataAccess;
 
 public class UserDataService {
-    private UserDataAccess userDataAccess;
+    private final UserDataAccess userDataAccess = new UserDataAccess();
 
-    public UserDataService() {
-        this.userDataAccess = new UserDataAccess();
-    }
+    public boolean registerUser(User user) {
+        if (userDataAccess.getUserByUsername(user.username()) != null) {
 
-    public void registerUser(User user) {
-
+            return false;
+        }
         userDataAccess.createUser(user);
+        return true;
     }
-
 }
