@@ -1,8 +1,13 @@
 package server;
 
-import spark.*;
+
+import com.google.gson.Gson;
+import model.User;
+import service.UserDataService;
+import spark.Spark;
 
 public class Server {
+
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);

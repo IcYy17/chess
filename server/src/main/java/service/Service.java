@@ -1,17 +1,20 @@
 package service;
 
+import com.google.gson.Gson;
 import model.User;
 import dataAccess.UserDataAccess;
+import spark.Spark;
 
 public class UserDataService {
     private final UserDataAccess userDataAccess = new UserDataAccess();
+    private final Gson gson = new Gson();
 
-    public boolean registerUser(User user) {
-        if (userDataAccess.getUserByUsername(user.username()) != null) {
+    public int run(int desiredPort){
+        Spark.port(desiredPort);
+        Spark.staticFiles.location(/resources/,resources);
+        endpoints();
 
-            return false;
-        }
-        userDataAccess.createUser(user);
-        return true;
+        Spark.awaitInitialization();
+        return Spark.port();
     }
 }
