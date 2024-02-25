@@ -1,38 +1,44 @@
 package server;
-
-
 import com.google.gson.Gson;
-import model.User;
-import service.UserDataService;
-import spark.Spark;
+import spark.;
+import java.util.;
 
 public class Server {
+    private ArrayList<String> names = new ArrayList<>();
 
+    public static void main(String[] args) {
+        new Server().run();
+    }
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
-
-        Spark.staticFiles.location("web");
-
-        endpoints();
-
+        Spark.staticFiles.location("resources");
         Spark.awaitInitialization();
         return Spark.port();
     }
-
-    public void stop() {
-        Spark.stop();
-        Spark.awaitStop();
+    private boolean clearServices(){
+        return true;
+    }
+   private Object clear(Request request,Response response){
+        boolean clearedSuccess = clearServices();
+        if(clearedSuccess){
+            response.status(200);
+            return "{}";
+        }else{
+            response.status(500);
+            Map<String,String> error = Map.of("message","Error: unable to clear");
+            return new Gson().toJson(error);
+        }
+   }
+    private Object addUser(Request req, Response res) {
+        return null;
     }
 
-    private void endpoints() {
-        Spark.post("/user", (request, response) -> {
-            return "User registration endpoint";
-        });
+    private Object listNames(Request req, Response res) {
+        return null;
+    }
 
-        Spark.post("/session", (request, response) -> {
-            return "User login endpoint";
-        });
-
+    private Object logOut(Request req, Response res) {
+        return null;
     }
 }

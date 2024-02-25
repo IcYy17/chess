@@ -3,27 +3,8 @@ package model;
 import chess.ChessGame;
 
 public class model {
+    public record User(String username, String password, String email) { }
+    public record Game(int gameID, String whiteUsername, String blackUsername, String gameName, ChessGame game) { }
+    public record AuthToken(String authToken, String username) { }
 
-
-    public class User {
-        private String username;
-        private String password;
-        private String email;
-
-    }
-
-    public class Game {
-        private int gameID;
-        private String whiteUsername;
-        private String blackUsername;
-        private String gameName;
-        private ChessGame game;
-
-    }
-
-    public class AuthToken {
-        private String authToken;
-        private String username;
-
-    }
 }
