@@ -9,9 +9,19 @@ public class UserDataService {
     private final MemoryUserDAO userDAO = new MemoryUserDAO();
 
     public void clear(){
-        userDAO.deleteAllGames();
+        userDAO.clearAllGames();
     }
+    public String login(LoginRequest request) throws DataAccessException{
+        String password = userDAO.readUser(request.username()).password();
+        if(!request.password().equals(password)){
+            throw new DataAccessException("error: incorrect password");
+        }
+        if(userDAO.readUser(request.username()) == null){
+            throw new DataAccessException("error: unregistered username");
+        }
 
+        return userDAO.readUser(request.username()).username();
+    }
 //    public String register(RegistrationRequest request) throws DataAccessException {
 //        if(userDAO.readUsername(request.username()) != null){
 //            throw new DataAccessException("Error: usename already taken");
@@ -23,5 +33,6 @@ public class UserDataService {
 //        userDAO.createUser(newUser);
 //        return newUser.username();
 //    }
+
 
 }

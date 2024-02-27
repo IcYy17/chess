@@ -7,12 +7,13 @@ import java.util.Objects;
 public class MemoryUserDAO {
     private HashMap<String, UserInfo> userDataList = new HashMap<String, UserInfo>();
 
-    public UserInfo readUsername(String username){
+    public void clearAllGames() {
+        userDataList.clear();
+    }
+    public UserInfo readUser(String username){
         return userDataList.get(username);
     }
-
-
-    public void deleteAllGames() {
-        userDataList.clear();
+    public void createUser(UserInfo user){
+        userDataList.put(user.username(),user);
     }
 }
