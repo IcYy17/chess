@@ -1,55 +1,68 @@
 package server;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
-import spark.;
-import java.util.;
+import requests.LoginRequest;
+import requests.RegistrationRequest;
+import service.UserDataService;
+import spark.*;
+import java.util.*;
 
 public class Server {
     private ArrayList<String> names = new ArrayList<>();
+    private final UserDataService userDataService = new UserDataService();
 
-    public static void main(String[] args) {
-        new Server().run();
-    }
 
     public int run(int desiredPort) {
+
         Spark.port(desiredPort);
-        Spark.staticFiles.location("resources");
+        Spark.staticFiles.location("web");
+        Spark.delete("/db", this::clearHandler);
+        Spark.get("/game", this::listGames);
+        Spark.put("/game",this::joinGame);
+        Spark.post("/user", this::addUser);
+        Spark.post("/session", this::loginUser);
+        Spark.post("/game", this::createGame);
+        Spark.delete("/session", this::logout);
+
+        Spark.init();
         Spark.awaitInitialization();
         return Spark.port();
     }
-    private boolean clearServices(){
-        return true;
-    }
-   private Object clear(Request request,Response response){
-        boolean clearedSuccess = clearServices();
-        if(clearedSuccess){
-            response.status(200);
-            return "{}";
-        }else{
-            response.status(500);
-            Map<String,String> error = Map.of("message","Error: unable to clear");
-            return new Gson().toJson(error);
-        }
+
+
+   private Object clearHandler(spark.Request request, Response response){
+       userDataService.clear();
+       return "{}";
    }
-    private Object addUser(Request req, Response res) {
-        return null;
+
+    private Object addUser(Request request, Response response) throws DataAccessException {
+        return "";
     }
 
-    private Object listNames(Request req, Response res) {
-        return null;
+    private Object loginUser(Request request, Response response) throws DataAccessException {
+        return 0;
     }
 
-    private Object logout(Request request, Response response) {
-        String sessionToken = request.headers("Authorization-Token");
-        try {
-            userService.endUserSession(sessionToken);
-            response.status(200);
-            response.type("application/json");
-            return new Gson().toJson(Map.of("status", "Session ended successfully"));
-        } catch (DataAccessException dae) {
-            response.type("application/json");
-            response.status(dae.getMessage().contains("Unauthorized") ? 401 : 500);
-            return new Gson().toJson(Map.of("error", "Error: " + dae.getMessage()));
-        }
+    private Object listGames(Request request, Response response) throws DataAccessException {
+        return 0;
+    }
+
+    private Object joinGame(Request request, Response response) throws DataAccessException {
+        return 0;
+    }
+
+    private Object createGame(Request request, Response response) throws DataAccessException {
+        return 0;
+    }
+
+    private Object logout(Request request, Response response) throws DataAccessException {
+        return 0;
+    }
+
+
+
+    public void stop(){
+        Spark.stop();
+        Spark.awaitStop();
     }
 }
