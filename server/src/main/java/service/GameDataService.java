@@ -5,6 +5,7 @@ import dataAccess.DataAccessException;
 import dataAccess.MemoryGameDAO;
 import model.GameInfo;
 import requests.CreateGameRequest;
+import requests.JoinGameRequest;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 
@@ -29,5 +30,20 @@ public class GameDataService {
         GameInfo gameData = new GameInfo(gameID,null,null, req.gameName(),game);
         gameDataDAO.createGame(gameData);
         return new CreateGameResponse(gameID);
+    }
+
+    public void joinGame(JoinGameRequest requ, String username) throws DataAccessException {
+        if(requ.playerColor() != null){
+            Integer gameID = requ.gameID();
+            GameInfo lastGame = gameDataDAO.readGame(gameID);
+            String color = requ.playerColor();
+            String blackUser = color.equals("BLACK") ? username : lastGame.blackUsername();
+            String whiteUser = color.equals("WHITE") ? username : lastGame.whiteUsername();
+            String gameNum = lastGame.gameName();
+            ChessGame game = lastGame.game();
+            GameInfo newGame = new GameInfo(gameID,whiteUser,blackUser,gameNum,game);
+            gameDataDAO.deleteGame(gameID);
+            gameDataDAO.createGame(newGame);
+        }
     }
 }

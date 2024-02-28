@@ -24,6 +24,12 @@ public class AuthDataService {
         else {
             throw new DataAccessException("Error: unauthorized");}
     }
+    public String getUsername(String authToken) throws DataAccessException{
+        if(authDAO.readAuth(authToken) == null){
+            throw new DataAccessException("error: unauthorized");
+        }
+        return authDAO.readAuth(authToken).username();
+    }
     public void verify(String authToken) throws DataAccessException {
         if(authDAO.readAuth(authToken) == null){
             throw new DataAccessException("error: unauthorized");

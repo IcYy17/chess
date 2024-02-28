@@ -16,4 +16,5 @@ public class MemoryUserDAO {
     public void createUser(UserInfo user){
         userDataList.put(user.username(),user);
     }
+
 }

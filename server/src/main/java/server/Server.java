@@ -51,15 +51,15 @@ public class Server {
 //       userDataService.clear();
 //       response.status(200);
 //       return "{}";
-    private Object clear(Request req, Response res) throws DataAccessException {
+    private Object clear(Request requ, Response res) throws DataAccessException {
         gameDataService.clear();
         userDataService.clear();
         authDataService.clear();
         res.status(200);
         return "{}";
     }
-    private Object addUser(Request req, Response res) throws DataAccessException {
-        RegisterRequest user = new Gson().fromJson(req.body(), RegisterRequest.class);
+    private Object addUser(Request requ, Response res) throws DataAccessException {
+        RegisterRequest user = new Gson().fromJson(requ.body(), RegisterRequest.class);
             String username = userDataService.add(user);
             String authToken = authDataService.add(user);
             RegisterResponse response = new RegisterResponse(username, authToken);
@@ -70,8 +70,8 @@ public class Server {
 
 
 
-    private Object userLogin(Request req, Response res) throws DataAccessException {
-        LoginRequest login = new Gson().fromJson(req.body(), LoginRequest.class);
+    private Object userLogin(Request requ, Response res) throws DataAccessException {
+        LoginRequest login = new Gson().fromJson(requ.body(), LoginRequest.class);
             String username = userDataService.login(login);
             String authToken = authDataService.login(login);
             LoginResponse response = new LoginResponse(username,authToken);
@@ -80,9 +80,9 @@ public class Server {
 
     }
 
-    private Object listGames(Request req, Response res){
+    private Object listGames(Request requ, Response res){
         try{
-        String authToken = req.headers("authorization");
+        String authToken = requ.headers("authorization");
             authDataService.verify(authToken);
             ListGamesResponse games = gameDataService.listGames();
             res.status(200);
@@ -93,19 +93,31 @@ public class Server {
         }
     }
 
-    private Object joinGame(Request request, Response response) throws DataAccessException {
-        return 0;
+    private Object joinGame(Request requ, Response res){
+
+        JoinGameRequest request = new Gson().fromJson(requ.body(), JoinGameRequest.class);
+        String authToken = requ.headers("authorization");
+        try{
+            String username = authDataService.getUsername(authToken);
+            gameDataService.joinGame(request, username);
+            res.status(200);
+            return "{}";
+        }
+        catch(DataAccessException exception){
+            return errorHandler(exception, res);
+
+        }
     }
 
-    private Object createGame(Request req, Response res) throws DataAccessException {
-        Gson gson = new Gson();
-        CreateGameRequest request = gson.fromJson(req.body(), CreateGameRequest.class);
-        String authToken = req.headers("authorization");
+    private Object createGame(Request requ, Response res) throws DataAccessException {
+
+        CreateGameRequest request = new Gson().fromJson(requ.body(), CreateGameRequest.class);
+
+        String authToken = requ.headers("authorization");
             authDataService.verify(authToken);
             CreateGameResponse response = gameDataService.createGame(request);
             res.status(200);
-            return gson.toJson(response, CreateGameResponse.class);
-
+            return new Gson().toJson(response, CreateGameResponse.class);
 
     }
 
