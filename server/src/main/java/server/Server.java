@@ -88,8 +88,16 @@ public class Server {
         return 0;
     }
 
-    private Object createGame(Request request, Response response) throws DataAccessException {
-        return 0;
+    private Object createGame(Request req, Response res) throws DataAccessException {
+        Gson gson = new Gson();
+        CreateGameRequest request = gson.fromJson(req.body(), CreateGameRequest.class);
+        String authToken = req.headers("authorization");
+            authDataService.verify(authToken);
+            CreateGameResponse response = gameDataService.createGame(request);
+            res.status(200);
+            return gson.toJson(response, CreateGameResponse.class);
+
+
     }
 
     private Object logout(Request req, Response res) throws DataAccessException {
