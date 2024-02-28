@@ -2,7 +2,7 @@ package dataAccess;
 
 import model.AuthInfo;
 
-public interface MyAuthDAO {
+public interface AuthDAO {
     String createAuth(String username);
     AuthInfo readAuth(String authToken);
 

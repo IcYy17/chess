@@ -1,12 +1,10 @@
 package service;
 
-import dataAccess.DataAccessException;
-import dataAccess.InMemoryAuthDAO;
+import dataAccess.MemoryAuthDAO;
 import requests.*;
-import response.*;
 
 public class AuthDataService {
-    private final InMemoryAuthDAO authDAO = new InMemoryAuthDAO();
+    private final MemoryAuthDAO authDAO = new MemoryAuthDAO();
     public String login(LoginRequest request){
         return authDAO.createAuth(request.username());
     }
