@@ -22,11 +22,11 @@ public class AuthDataService {
             authDAO.deleteAuthToken(authToken);
         }
         else {
-            throw new DataAccessException("Error: no access");}
+            throw new DataAccessException("Error: unauthorized");}
     }
     public void verify(String authToken) throws DataAccessException {
         if(authDAO.readAuth(authToken) == null){
-            throw new DataAccessException("error: no access");
+            throw new DataAccessException("error: unauthorized");
         }
     }
 }

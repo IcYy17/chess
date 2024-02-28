@@ -47,15 +47,15 @@ public class Server {
         return new Gson().toJson(errorResponse,ErrorResponse.class);
     }
 
-   private Object clear(spark.Request request, Response response){
-       userDataService.clear();
-       response.status(200);
-       return "{}";
-   }
-    private Object clearApplication(Request req, Response res) throws DataAccessException {
+//   private Object clear(spark.Request request, Response response){
+//       userDataService.clear();
+//       response.status(200);
+//       return "{}";
+    private Object clear(Request req, Response res) throws DataAccessException {
+        gameDataService.clear();
         userDataService.clear();
         authDataService.clear();
-//        gameDataService.clear();
+        res.status(200);
         return "{}";
     }
     private Object addUser(Request req, Response res) throws DataAccessException {
@@ -80,8 +80,17 @@ public class Server {
 
     }
 
-    private Object listGames(Request request, Response response) throws DataAccessException {
-        return 0;
+    private Object listGames(Request req, Response res){
+        try{
+        String authToken = req.headers("authorization");
+            authDataService.verify(authToken);
+            ListGamesResponse games = gameDataService.listGames();
+            res.status(200);
+            return new Gson().toJson(games, ListGamesResponse.class);}
+        catch(DataAccessException exception){
+            return errorHandler(exception, res);
+
+        }
     }
 
     private Object joinGame(Request request, Response response) throws DataAccessException {
