@@ -1,8 +1,8 @@
 package response;
-
+import java.util.ArrayList;
 import model.*;
 
-import java.util.ArrayList;
+
 
 public record ListGamesResponse(ArrayList<GameInfo> games) {
 }

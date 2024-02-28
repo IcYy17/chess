@@ -30,7 +30,7 @@ public class AuthDataService {
         }
         return authDAO.readAuth(authToken).username();
     }
-    public void verify(String authToken) throws DataAccessException {
+    public void verifyAuth(String authToken) throws DataAccessException {
         if(authDAO.readAuth(authToken) == null){
             throw new DataAccessException("error: unauthorized");
         }

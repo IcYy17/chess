@@ -5,8 +5,7 @@ import model.*;
 
 public interface UserDAO {
 
-    UserInfo createUser(String username, String password, String email) throws DataAccessException;
-    UserInfo getUser(String username) throws DataAccessException;
-    public void checkUsername(String username) throws DataAccessException;
-    public void checkPassword(String username, String password) throws DataAccessException;
+    void createUser(UserInfo user);
+    UserInfo readUser(String username);
+    void deleteAllGames();
 }

@@ -1,17 +1,14 @@
 package server;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
-import org.xml.sax.ErrorHandler;
 import requests.*;
 import response.*;
 import service.AuthDataService;
 import service.GameDataService;
 import service.UserDataService;
 import spark.*;
-import java.util.*;
 
 public class Server {
-    private ArrayList<String> names = new ArrayList<>();
     private final UserDataService userDataService = new UserDataService();
     private final AuthDataService authDataService = new AuthDataService();
     private final GameDataService gameDataService = new GameDataService();
@@ -53,14 +50,14 @@ public class Server {
 //       userDataService.clear();
 //       response.status(200);
 //       return "{}";
-    private Object clear(Request requ, Response res) throws DataAccessException {
+    private Object clear(Request requ, Response res){
         gameDataService.clear();
         userDataService.clear();
         authDataService.clear();
         res.status(200);
         return "{}";
     }
-    private Object addUser(Request requ, Response res) throws DataAccessException {
+    private Object addUser(Request requ, Response res) {
         try {
             RegisterRequest user = new Gson().fromJson(requ.body(), RegisterRequest.class);
             String username = userDataService.add(user);
@@ -93,7 +90,7 @@ public class Server {
     private Object listGames(Request requ, Response res){
         try{
             String authToken = requ.headers("authorization");
-            authDataService.verify(authToken);
+            authDataService.verifyAuth(authToken);
             ListGamesResponse games = gameDataService.listGames();
             res.status(200);
             return new Gson().toJson(games, ListGamesResponse.class);}
@@ -119,12 +116,12 @@ public class Server {
         }
     }
 
-    private Object createGame(Request requ, Response res) throws DataAccessException {
+    private Object createGame(Request requ, Response res) {
         try {
             CreateGameRequest request = new Gson().fromJson(requ.body(), CreateGameRequest.class);
 
             String authToken = requ.headers("authorization");
-            authDataService.verify(authToken);
+            authDataService.verifyAuth(authToken);
             CreateGameResponse response = gameDataService.createGame(request);
             res.status(200);
             return new Gson().toJson(response, CreateGameResponse.class);
@@ -134,7 +131,7 @@ public class Server {
 
     }
 
-    private Object logout(Request req, Response res) throws DataAccessException {
+    private Object logout(Request req, Response res) {
         try {
             String authToken = req.headers("authorization");
             authDataService.logout(authToken);
