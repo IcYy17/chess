@@ -7,7 +7,7 @@ import java.util.Objects;
 public class MemoryUserDAO {
     private HashMap<String, UserInfo> userDataList = new HashMap<String, UserInfo>();
 
-    public void clearAllGames() {
+    public void clearAllUsers() {
         userDataList.clear();
     }
     public UserInfo readUsername(String username){

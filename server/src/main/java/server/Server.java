@@ -1,6 +1,7 @@
 package server;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
+import org.xml.sax.ErrorHandler;
 import requests.*;
 import response.*;
 import service.AuthDataService;
@@ -39,12 +40,13 @@ public class Server {
             case "Error: unauthorized" -> 401;
             case "Error: not available" -> 403;
 
+
         };
     }
-    private String errorHandler(DataAccessException exception, Response response){
-        ErrorResponse errorResponse = new ErrorResponse(exception.getMessage());
-        response.status(resStatus(exception.getMessage()));
-        return new Gson().toJson(errorResponse,ErrorResponse.class);
+    private String errorHandler(DataAccessException exception, Response res){
+        ErrorResponse error = new ErrorResponse(exception.getMessage());
+        res.status(resStatus(exception.getMessage()));
+        return new Gson().toJson(error,ErrorResponse.class);
     }
 
 //   private Object clear(spark.Request request, Response response){
@@ -59,30 +61,38 @@ public class Server {
         return "{}";
     }
     private Object addUser(Request requ, Response res) throws DataAccessException {
-        RegisterRequest user = new Gson().fromJson(requ.body(), RegisterRequest.class);
+        try {
+            RegisterRequest user = new Gson().fromJson(requ.body(), RegisterRequest.class);
             String username = userDataService.add(user);
             String authToken = authDataService.add(user);
             RegisterResponse response = new RegisterResponse(username, authToken);
             res.status(200);
             return new Gson().toJson(response, RegisterResponse.class);
+        }catch(DataAccessException exception) {
+            return errorHandler(exception, res);
+        }
 
     }
 
 
 
-    private Object userLogin(Request requ, Response res) throws DataAccessException {
-        LoginRequest login = new Gson().fromJson(requ.body(), LoginRequest.class);
+    private Object userLogin(Request req, Response res) {
+        try {
+            LoginRequest login = new Gson().fromJson(req.body(), LoginRequest.class);
             String username = userDataService.login(login);
             String authToken = authDataService.login(login);
-            LoginResponse response = new LoginResponse(username,authToken);
+            LoginResponse response = new LoginResponse(username, authToken);
             res.status(200);
             return new Gson().toJson(response, LoginResponse.class);
-
+        }
+        catch(DataAccessException exception) {
+            return errorHandler(exception, res);
+        }
     }
 
     private Object listGames(Request requ, Response res){
         try{
-        String authToken = requ.headers("authorization");
+            String authToken = requ.headers("authorization");
             authDataService.verify(authToken);
             ListGamesResponse games = gameDataService.listGames();
             res.status(200);
@@ -94,10 +104,10 @@ public class Server {
     }
 
     private Object joinGame(Request requ, Response res){
-
-        JoinGameRequest request = new Gson().fromJson(requ.body(), JoinGameRequest.class);
-        String authToken = requ.headers("authorization");
         try{
+            JoinGameRequest request = new Gson().fromJson(requ.body(), JoinGameRequest.class);
+            String authToken = requ.headers("authorization");
+
             String username = authDataService.getUsername(authToken);
             gameDataService.joinGame(request, username);
             res.status(200);
@@ -110,22 +120,30 @@ public class Server {
     }
 
     private Object createGame(Request requ, Response res) throws DataAccessException {
+        try {
+            CreateGameRequest request = new Gson().fromJson(requ.body(), CreateGameRequest.class);
 
-        CreateGameRequest request = new Gson().fromJson(requ.body(), CreateGameRequest.class);
-
-        String authToken = requ.headers("authorization");
+            String authToken = requ.headers("authorization");
             authDataService.verify(authToken);
             CreateGameResponse response = gameDataService.createGame(request);
             res.status(200);
             return new Gson().toJson(response, CreateGameResponse.class);
+    }   catch(DataAccessException exception) {
+        return errorHandler(exception, res);
+    }
 
     }
 
     private Object logout(Request req, Response res) throws DataAccessException {
-        String authToken = req.headers("authorization");
-        authDataService.logout(authToken);
-        res.status(200);
-        return "{}";
+        try {
+            String authToken = req.headers("authorization");
+            authDataService.logout(authToken);
+            res.status(200);
+            return "{}";
+        }
+    catch(DataAccessException exception) {
+        return errorHandler(exception, res);
+    }
     }
 
 
