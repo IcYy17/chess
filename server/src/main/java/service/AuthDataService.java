@@ -1,6 +1,6 @@
 package service;
 
-import dataAccess.MemoryAuthDAO;
+import dataAccess.*;
 import requests.*;
 
 public class AuthDataService {
@@ -11,6 +11,18 @@ public class AuthDataService {
 
     public String add(RegisterRequest user) {
         return authDAO.createAuth(user.username());
+    }
+
+    public void clear(){
+        authDAO.deleteAuthData();
+    }
+
+    public void logout(String authToken) throws DataAccessException {
+        if(authDAO.readAuth(authToken) != null) {
+            authDAO.deleteAuthToken(authToken);
+        }
+        else {
+            throw new DataAccessException("Error: no access");}
     }
 
 }
