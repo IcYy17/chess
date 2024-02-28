@@ -1,7 +1,7 @@
 package service;
 
-import dataAccess.DataAccessException;
-import dataAccess.MemoryUserDAO;
+
+import dataAccess.*;
 import model.*;
 import requests.*;
 
@@ -11,28 +11,30 @@ public class UserDataService {
     public void clear(){
         userDAO.clearAllGames();
     }
+
     public String login(LoginRequest request) throws DataAccessException{
-        String password = userDAO.readUser(request.username()).password();
+        String password = userDAO.readUsername(request.username()).password();
         if(!request.password().equals(password)){
             throw new DataAccessException("error: incorrect password");
         }
-        if(userDAO.readUser(request.username()) == null){
+        if(userDAO.readUsername(request.username()) == null){
             throw new DataAccessException("error: unregistered username");
         }
 
-        return userDAO.readUser(request.username()).username();
+        return userDAO.readUsername(request.username()).username();
     }
-//    public String register(RegistrationRequest request) throws DataAccessException {
-//        if(userDAO.readUsername(request.username()) != null){
-//            throw new DataAccessException("Error: usename already taken");
-//        }
-//        if(request.username() == null || request.password() == null || request.email() == null){
-//            throw new DataAccessException("Error: not a request");
-//        }
-//        UserInfo newUser = new UserInfo(request.username(), request.password(), request.email());
-//        userDAO.createUser(newUser);
-//        return newUser.username();
-//    }
+
+    public String add(RegisterRequest request) throws DataAccessException {
+        if(userDAO.readUsername(request.username()) != null){
+            throw new DataAccessException("Error: username already taken");
+        }
+        if(request.username() == null || request.password() == null || request.email() == null){
+            throw new DataAccessException("Error: not a request");
+        }
+        UserInfo newUser = new UserInfo(request.username(), request.password(), request.email());
+        userDAO.createUser(newUser);
+        return newUser.username();
+    }
 
 
 }

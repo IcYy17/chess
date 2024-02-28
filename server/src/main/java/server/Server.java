@@ -41,33 +41,24 @@ public class Server {
    }
 
     private Object addUser(Request req, Response res) throws DataAccessException {
-//        Gson gson = new Gson();
-//        RegistrationRequest request = gson.fromJson(req.body(), RegistrationRequest.class);
-//        try{
-//            String username = userService.register(request);
-//            String authToken = authService.register(request);
-//            RegistrationResponse response = new RegistrationResponse(username,authToken);
-//            res.status(200);
-//            return gson.toJson(response, RegistrationResponse.class);
-//        }
-//        catch(DataAccessException exception){
-//            ErrorResponse response = new ErrorResponse(exception.getMessage());
-//            res.status(getStatus(exception.getMessage()));
-//            return gson.toJson(response, ErrorResponse.class);
-//        }
-                return "";
+        RegisterRequest user = new Gson().fromJson(req.body(), RegisterRequest.class);
+            String username = userDataService.add(user);
+            String authToken = authDataService.add(user);
+            RegisterResponse response = new RegisterResponse(username, authToken);
+            res.status(200);
+            return new Gson().toJson(response, RegisterResponse.class);
+
     }
 
 
 
     private Object userLogin(Request req, Response res) throws DataAccessException {
-        Gson gson = new Gson();
-        LoginRequest request = gson.fromJson(req.body(), LoginRequest.class);
-            String username = userDataService.login(request);
-            String authToken = authDataService.login(request);
+        LoginRequest login = new Gson().fromJson(req.body(), LoginRequest.class);
+            String username = userDataService.login(login);
+            String authToken = authDataService.login(login);
             LoginResponse response = new LoginResponse(username,authToken);
             res.status(200);
-            return gson.toJson(response, LoginResponse.class);
+            return new Gson().toJson(response, LoginResponse.class);
 
     }
 

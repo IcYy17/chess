@@ -10,7 +10,7 @@ public class MemoryUserDAO {
     public void clearAllGames() {
         userDataList.clear();
     }
-    public UserInfo readUser(String username){
+    public UserInfo readUsername(String username){
         return userDataList.get(username);
     }
     public void createUser(UserInfo user){
