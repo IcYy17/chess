@@ -25,24 +25,30 @@ public class MyTests {
 
     @Test
     public void positiveRegister() throws DataAccessException {
-        String username = userdataService.add(registerRequest);
-        String authToken = authdataService.add(registerRequest);
+        userdataService.add(registerRequest);
+        authdataService.add(registerRequest);
+    }
+    @Test
+    public void positiveClear() throws DataAccessException {
+
+        userdataService.add(registerRequest);
+        authdataService.add(registerRequest);
+        gamedataService.createGame(createGameRequest);
+
+        userdataService.clear();
+        authdataService.clear();
+        gamedataService.clear();
     }
 
     @Test
     public void negativeRegister() {
 
-        RegisterRequest invalidRegistrationDetails = new RegisterRequest("", "", "");
-
-        DataAccessException thrownException = assertThrows(DataAccessException.class, () -> {
-            userdataService.add(invalidRegistrationDetails);
-            authdataService.add(invalidRegistrationDetails);
-        }, "Expected register to throw, but it didn't");
-
-        String expectedMessage = "bad request";
-        String actualMessage = thrownException.getMessage().toLowerCase();
-        assertTrue(actualMessage.contains(expectedMessage),
-                String.format("Exception message was expected to contain '%s', but was '%s'", expectedMessage, actualMessage));
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            RegisterRequest badRequest = new RegisterRequest(null, null, null);
+            userdataService.add(badRequest);
+            authdataService.add(badRequest);
+        });
+        assertTrue(exception.getMessage().toLowerCase().contains("bad request"));
     }
 
     @Test
@@ -52,20 +58,18 @@ public class MyTests {
         String validToken = authdataService.add(newUserRequest);
 
         authdataService.logout(validToken);
-
-
     }
 
     @Test
     public void positiveLogin() throws DataAccessException{
-        String user = userdataService.add(registerRequest);
-        String token = authdataService.add(registerRequest);
+        userdataService.add(registerRequest);
+        authdataService.add(registerRequest);
 
         userdataService.login(loginRequest);
         authdataService.login(loginRequest);
     }
     @Test
-    public void successfulGameCreation() throws DataAccessException {
+    public void positiveCreateGame() throws DataAccessException {
         userdataService.add(registerRequest);
         String sessionToken = authdataService.add(registerRequest);
         authdataService.verifyAuth(sessionToken);
@@ -73,7 +77,7 @@ public class MyTests {
         gamedataService.createGame(createGameRequest);
     }
     @Test
-    public void successfullyListsGames() throws DataAccessException {
+    public void positiveListGames() throws DataAccessException {
         userdataService.add(registerRequest);
         String userToken = authdataService.add(registerRequest);
         authdataService.verifyAuth(userToken);
@@ -84,7 +88,7 @@ public class MyTests {
         gamedataService.listGames();
     }
     @Test
-    public void successfulGameJoining() throws DataAccessException {
+    public void positiveJoinGame() throws DataAccessException {
         userdataService.add(registerRequest);
         String authToken = authdataService.add(registerRequest);
         authdataService.verifyAuth(authToken);
@@ -95,6 +99,59 @@ public class MyTests {
 
         JoinGameRequest requestToJoinGame = new JoinGameRequest("Isaac", gameId);
         gamedataService.joinGame(requestToJoinGame, "Isaac");
+    }
+    @Test
+    public void negativeJoinGame() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.add(registerRequest);
+            String authToken = authdataService.add(registerRequest);
+            authdataService.verifyAuth(authToken);
+            gamedataService.createGame(createGameRequest);
+            JoinGameRequest joinGameRequest = new JoinGameRequest("Isaac", 234);
+            gamedataService.joinGame(joinGameRequest, "Isaac");
+        });
+        assertTrue(exception.getMessage().toLowerCase().contains("bad request"));
+    }
+    @Test
+    public void negativeListGames() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.add(registerRequest);
+            authdataService.add(registerRequest);
+            String invalidToken = UUID.randomUUID().toString();
+            authdataService.verifyAuth(invalidToken);
+        });
+        assertTrue(exception.getMessage().toLowerCase().contains("unauthorized"));
+    }
+
+    @Test
+    public void negativeCreateGame() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.add(registerRequest);
+            authdataService.add(registerRequest);
+            gamedataService.createGame(new CreateGameRequest(null));
+        });
+        assertTrue(exception.getMessage().toLowerCase().contains("bad request"));
+    }
+    @Test
+    public void negativeLogin() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.add(registerRequest);
+            authdataService.add(registerRequest);
+            LoginRequest badLogin = new LoginRequest("asdf", "griddy");
+            userdataService.login(badLogin);
+        });
+        assertTrue(exception.getMessage().toLowerCase().contains("unauthorized"));
+    }
+    @Test
+    public void negativeLogout() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.add(registerRequest);
+            authdataService.add(registerRequest);
+
+            String badLogout = UUID.randomUUID().toString();
+            authdataService.logout(badLogout);
+        });
+        assertTrue(exception.getMessage().toLowerCase().contains("unauthorized"));
     }
 
 

@@ -15,13 +15,7 @@ public class UserDataService {
     public String login(LoginRequest login) throws DataAccessException {
         UserInfo user = userDAO.readUsername(login.username());
 
-        if (user == null) {
-            throw new DataAccessException("Error: unauthorized");
-        }
-
-        String password = userDAO.readUsername(login.username()).password();
-
-        if (!login.password().equals(password)) {
+        if (user == null || !login.password().equals(user.password())) {
             throw new DataAccessException("Error: unauthorized");
         }
 
@@ -29,14 +23,15 @@ public class UserDataService {
     }
 
     public String add(RegisterRequest request) throws DataAccessException {
-        if(userDAO.readUsername(request.username()) != null){
-            throw new DataAccessException("Error: unauthorized");
+        if (request.username() == null || request.password() == null || request.email() == null) {
+            throw new DataAccessException("Error: bad request");
         }
-        if(request.username() == null || request.password() == null || request.email() == null){
-            throw new DataAccessException("Error: unauthorized");
+        if (userDAO.readUsername(request.username()) != null) {
+            throw new DataAccessException("Error: already taken");
         }
         UserInfo newUser = new UserInfo(request.username(), request.password(), request.email());
         userDAO.createUser(newUser);
+
         return newUser.username();
     }
 

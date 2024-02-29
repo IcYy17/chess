@@ -1,6 +1,7 @@
 package service;
 
 import dataAccess.*;
+import model.AuthInfo;
 import requests.*;
 
 public class AuthDataService {
@@ -18,21 +19,22 @@ public class AuthDataService {
     }
 
     public void logout(String authToken) throws DataAccessException {
-        if(authDAO.readAuth(authToken) != null) {
-            authDAO.deleteAuthToken(authToken);
+        if (authDAO.readAuth(authToken) == null) {
+            throw new DataAccessException("Error: unauthorized");
         }
-        else {
-            throw new DataAccessException("Error: unauthorized");}
+
+        authDAO.deleteAuthToken(authToken);
     }
-    public String getUsername(String authToken) throws DataAccessException{
-        if(authDAO.readAuth(authToken) == null){
-            throw new DataAccessException("error: unauthorized");
+    public String getUsername(String authToken) throws DataAccessException {
+        AuthInfo authInfo = authDAO.readAuth(authToken);
+        if (authInfo == null) {
+            throw new DataAccessException("Error: unauthorized");
         }
-        return authDAO.readAuth(authToken).username();
+        return authInfo.username();
     }
     public void verifyAuth(String authToken) throws DataAccessException {
-        if(authDAO.readAuth(authToken) == null){
-            throw new DataAccessException("error: unauthorized");
+        if (authDAO.readAuth(authToken) == null) {
+            throw new DataAccessException("Error: unauthorized");
         }
     }
 }

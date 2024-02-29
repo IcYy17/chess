@@ -20,39 +20,33 @@ public class GameDataService {
     public ListGamesResponse listGames(){
         return new ListGamesResponse(gameDataDAO.readAllGames());
     }
-    public CreateGameResponse createGame(CreateGameRequest requ) throws DataAccessException {
-        ChessGame game = new ChessGame();
-        if(requ.gameName() == null){
+    public CreateGameResponse createGame(CreateGameRequest request) throws DataAccessException {
+        if (request.gameName() == null || request.gameName().isEmpty()) {
             throw new DataAccessException("Error: bad request");
         }
-        Random num = new Random();
-        int gameNum = Math.abs(num.nextInt());
-        GameInfo gameInfo = new GameInfo(gameNum,null,null, requ.gameName(),game);
-        gameDataDAO.createGame(gameInfo);
-        return new CreateGameResponse(gameNum);
+        int gameId = new Random().nextInt(Integer.MAX_VALUE);
+        ChessGame newGame = new ChessGame(); // Assuming ChessGame initialization can be done here directly.
+        GameInfo newGameInfo = new GameInfo(gameId, null, null, request.gameName(), newGame);
+        gameDataDAO.createGame(newGameInfo);
+        return new CreateGameResponse(gameId);
     }
 
-    public void joinGame(JoinGameRequest requ, String username) throws DataAccessException {
-        if (gameDataDAO.readGame(requ.gameID()) == null) {
+    public void joinGame(JoinGameRequest request, String username) throws DataAccessException {
+        GameInfo game = gameDataDAO.readGame(request.gameID());
+        if (game == null) {
             throw new DataAccessException("Error: bad request");
         }
-        if(requ.playerColor() != null){
-            Integer gameID = requ.gameID();
-            GameInfo lastGame = gameDataDAO.readGame(gameID);
-            if(requ.playerColor().equals("BLACK") && lastGame.blackUsername() != null){
-                throw new DataAccessException("Error: already taken");
-            }
-            if(requ.playerColor().equals("WHITE") && lastGame.whiteUsername() != null){
-                throw new DataAccessException("Error: already taken");
-            }
-            String color = requ.playerColor();
-            String blackUser = color.equals("BLACK") ? username : lastGame.blackUsername();
-            String whiteUser = color.equals("WHITE") ? username : lastGame.whiteUsername();
-            String gameNum = lastGame.gameName();
-            ChessGame game = lastGame.game();
-            GameInfo newGame = new GameInfo(gameID,whiteUser,blackUser,gameNum,game);
-            gameDataDAO.deleteGame(gameID);
-            gameDataDAO.createGame(newGame);
+
+        if (("BLACK".equals(request.playerColor()) && game.blackUsername() != null) ||
+                ("WHITE".equals(request.playerColor()) && game.whiteUsername() != null)) {
+            throw new DataAccessException("Error: already taken");
         }
+
+        String updatedBlackUsername = "BLACK".equals(request.playerColor()) ? username : game.blackUsername();
+        String updatedWhiteUsername = "WHITE".equals(request.playerColor()) ? username : game.whiteUsername();
+        GameInfo updatedGame = new GameInfo(request.gameID(), updatedWhiteUsername, updatedBlackUsername, game.gameName(), game.game());
+
+        gameDataDAO.deleteGame(request.gameID());
+        gameDataDAO.createGame(updatedGame);
     }
 }
