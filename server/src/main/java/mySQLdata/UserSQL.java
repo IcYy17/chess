@@ -4,10 +4,11 @@ import model.UserInfo;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import dataAccess.DatabaseManager;
-public class UserSQL {
+public class UserSQL implements dataAccess.UserDAO {
     public BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     public void createUser(UserInfo user) throws DataAccessException {
         String hashedPassword = encoder.encode(user.password());
@@ -22,9 +23,25 @@ public class UserSQL {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to create user: " + e.getMessage(), e);
+            throw new DataAccessException(e.getMessage());
         }
     }
+    public void deleteUsers() throws DataAccessException{
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String cmd = "DELETE FROM user";
+            try (var send = conn.prepareStatement(cmd)) {
+                send.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
+
+
+
+
+
 }
 
 
@@ -33,4 +50,4 @@ public class UserSQL {
 
 
 
-}
+
