@@ -35,7 +35,7 @@ public class GameSQL implements dataAccess.GameDAO {
             throw new DataAccessException(ex.getMessage());
         }
     }
-    public void deleteEveryGame() throws DataAccessException {
+    public void deleteAllGames() throws DataAccessException {
         try (Connection set = DatabaseManager.getConnection()) {
             String cmd = "DELETE FROM game";
             try (var statement = set.prepareStatement(cmd)) {

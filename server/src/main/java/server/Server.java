@@ -49,11 +49,16 @@ public class Server {
     }
 
     private Object clear(Request requ, Response res){
-        gameDataService.clear();
-        userDataService.clear();
-        authDataService.clear();
-        res.status(200);
-        return "{}";
+        try {
+            gameDataService.clear();
+            userDataService.clear();
+            authDataService.clear();
+            res.status(200);
+            return "{}";
+        }catch(DataAccessException ex){
+            return errorHandler(ex, res);
+
+        }
     }
     private Object addUser(Request requ, Response res) {
         try {

@@ -2,19 +2,20 @@ package service;
 
 import dataAccess.*;
 import model.AuthInfo;
+import mySQLdata.AuthSQL;
 import requests.*;
 
 public class AuthDataService {
-    private final MemoryAuthDAO authDAO = new MemoryAuthDAO();
-    public String login(LoginRequest login){
+    private final AuthSQL authDAO = new AuthSQL();
+    public String login(LoginRequest login)throws DataAccessException{
         return authDAO.createAuth(login.username());
     }
 
-    public String add(RegisterRequest user) {
+    public String add(RegisterRequest user)throws DataAccessException {
         return authDAO.createAuth(user.username());
     }
 
-    public void clear(){
+    public void clear()throws DataAccessException{
         authDAO.deleteAuthData();
     }
 
