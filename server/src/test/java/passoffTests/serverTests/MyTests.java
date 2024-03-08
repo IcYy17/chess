@@ -25,12 +25,13 @@ public class MyTests {
 
     @Test
     public void positiveRegister() throws DataAccessException {
+        userdataService.clear();
         userdataService.add(registerRequest);
         authdataService.add(registerRequest);
     }
     @Test
     public void positiveClear() throws DataAccessException {
-
+        userdataService.clear();
         userdataService.add(registerRequest);
         authdataService.add(registerRequest);
         gamedataService.createGame(createGameRequest);
@@ -53,6 +54,7 @@ public class MyTests {
 
     @Test
     public void positiveLogout() throws DataAccessException {
+        userdataService.clear();///
         RegisterRequest newUserRequest = registerRequest;
         userdataService.add(newUserRequest);
         String validToken = authdataService.add(newUserRequest);
@@ -62,6 +64,7 @@ public class MyTests {
 
     @Test
     public void positiveLogin() throws DataAccessException{
+        userdataService.clear();
         userdataService.add(registerRequest);
         authdataService.add(registerRequest);
 
@@ -70,6 +73,7 @@ public class MyTests {
     }
     @Test
     public void positiveCreateGame() throws DataAccessException {
+        userdataService.clear();
         userdataService.add(registerRequest);
         String sessionToken = authdataService.add(registerRequest);
         authdataService.verifyAuth(sessionToken);
@@ -78,6 +82,7 @@ public class MyTests {
     }
     @Test
     public void positiveListGames() throws DataAccessException {
+        userdataService.clear();
         userdataService.add(registerRequest);
         String userToken = authdataService.add(registerRequest);
         authdataService.verifyAuth(userToken);
@@ -89,6 +94,7 @@ public class MyTests {
     }
     @Test
     public void positiveJoinGame() throws DataAccessException {
+        userdataService.clear();
         userdataService.add(registerRequest);
         String authToken = authdataService.add(registerRequest);
         authdataService.verifyAuth(authToken);
@@ -102,7 +108,9 @@ public class MyTests {
     }
     @Test
     public void negativeJoinGame() {
+
         DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.clear();
             userdataService.add(registerRequest);
             String authToken = authdataService.add(registerRequest);
             authdataService.verifyAuth(authToken);
@@ -115,6 +123,7 @@ public class MyTests {
     @Test
     public void negativeListGames() {
         DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.clear();
             userdataService.add(registerRequest);
             authdataService.add(registerRequest);
             String invalidToken = UUID.randomUUID().toString();
@@ -126,6 +135,7 @@ public class MyTests {
     @Test
     public void negativeCreateGame() {
         DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.clear();
             userdataService.add(registerRequest);
             authdataService.add(registerRequest);
             gamedataService.createGame(new CreateGameRequest(null));
@@ -135,6 +145,7 @@ public class MyTests {
     @Test
     public void negativeLogin() {
         DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.clear();
             userdataService.add(registerRequest);
             authdataService.add(registerRequest);
             LoginRequest badLogin = new LoginRequest("asdf", "griddy");
@@ -145,6 +156,7 @@ public class MyTests {
     @Test
     public void negativeLogout() {
         DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            userdataService.clear();
             userdataService.add(registerRequest);
             authdataService.add(registerRequest);
 
