@@ -158,6 +158,12 @@ public class DataAccessTests {
             gameDAO.createGame(game1);
         });
     }
+
+    @Test
+    public void positiveDeleteGame() throws DataAccessException{
+        gameDAO.createGame(game1);
+        gameDAO.deleteGame(game1.gameID());
+    }
     @Test
     public void badDeleteAllGames() throws DataAccessException{
         gameDAO.deleteAllGames();
@@ -165,22 +171,29 @@ public class DataAccessTests {
         assertEquals(new ArrayList<>(), games);
     }
     @Test
-    public void positiveDeleteGame() throws DataAccessException{
-        gameDAO.createGame(game1);
-        gameDAO.deleteGame(game1.gameID());
-    }
-    @Test
     public void createAndReadMultipleUsers() throws DataAccessException {
         UserInfo user1 = new UserInfo("user1", "pass1", "email1@example.com");
         UserInfo user2 = new UserInfo("user2", "pass2", "email2@example.com");
         userDAO.createUser(user1);
         userDAO.createUser(user2);
-        UserInfo retrievedUser1 = userDAO.readUser(user1.username());
-        UserInfo retrievedUser2 = userDAO.readUser(user2.username());
-        assertEquals(user1.username(), retrievedUser1.username(), "User1 was not correctly stored or retrieved.");
-        assertEquals(user2.username(), retrievedUser2.username(), "User2 was not correctly stored or retrieved.");
+        UserInfo retrieveUser1 = userDAO.readUser(user1.username());
+        UserInfo retrieveUser2 = userDAO.readUser(user2.username());
+        assertEquals(user1.username(), retrieveUser1.username(), "User1 was not correctly stored or retrieved.");
+        assertEquals(user2.username(), retrieveUser2.username(), "User2 was not correctly stored or retrieved.");
     }
+    @Test
+    public void deleteSpecificGameAndVerify() throws DataAccessException {
+        gameDAO.createGame(game1);
+        gameDAO.deleteGame(game1.gameID());
 
+        GameInfo deletedGame = gameDAO.readGame(game1.gameID());
+        assertNull(deletedGame, "Game should be deleted");
+    }
+    @Test
+    public void readNonExistentAuth() throws DataAccessException {
+        AuthInfo authData = authDAO.readAuth("DNE");
+        assertNull(authData, "Should return null");
+    }
 
 
 
