@@ -37,6 +37,26 @@ public class UserSQL implements dataAccess.UserDAO {
         }
     }
 
+    public UserInfo readUser(String username) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            String sql = "SELECT * FROM user WHERE username = ?";
+            try (var statement = conn.prepareStatement(sql)) {
+                statement.setString(1,username);
+                ResultSet rs = statement.executeQuery();
+                if(rs.next()){
+                    return new UserInfo(
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("email")
+                    );
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
 
 
 
