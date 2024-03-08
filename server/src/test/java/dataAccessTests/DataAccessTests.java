@@ -31,6 +31,19 @@ public class DataAccessTests {
         authDAO.deleteAuthData();
     }
     @Test
+    public void readNonExistentAuth() throws DataAccessException {
+        AuthInfo authData = authDAO.readAuth("DNE");
+        assertNull(authData, "Should return null");
+    }
+    @Test
+    public void userDeletionVerification() throws DataAccessException {
+        userDAO.createUser(userInfo);
+        userDAO.deleteAllUsers();
+
+        UserInfo deletedUser = userDAO.readUser(userInfo.username());
+        assertNull(deletedUser, "User should not exist after being deleted.");
+    }
+    @Test
     public void positiveCreateUser()throws DataAccessException{
         userDAO.createUser(userInfo);
     }
@@ -97,13 +110,18 @@ public class DataAccessTests {
 
     }
 
-
     @Test
-    public void negativeDeleteAllGames() throws DataAccessException{
-        gameDAO.deleteAllGames();
-        ArrayList<GameInfo> game = gameDAO.readAllGames();
-        assertEquals(new ArrayList<>(), game);
+    public void positiveCreateGame() throws DataAccessException{
+        gameDAO.createGame(game1);
     }
+    @Test
+    public void negativeCreateGame() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            gameDAO.createGame(game1);
+            gameDAO.createGame(game1);
+        });
+    }
+
     @Test
     public void positiveCreateAuth() throws DataAccessException{
         authDAO.createAuth(userInfo.username());
@@ -148,28 +166,17 @@ public class DataAccessTests {
     }
 
     @Test
-    public void positiveCreateGame() throws DataAccessException{
-        gameDAO.createGame(game1);
-    }
-    @Test
-    public void badCreateGame() {
-        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
-            gameDAO.createGame(game1);
-            gameDAO.createGame(game1);
-        });
-    }
-
-    @Test
     public void positiveDeleteGame() throws DataAccessException{
         gameDAO.createGame(game1);
         gameDAO.deleteGame(game1.gameID());
     }
     @Test
-    public void badDeleteAllGames() throws DataAccessException{
+    public void negativeDeleteAllGames() throws DataAccessException{
         gameDAO.deleteAllGames();
-        ArrayList<GameInfo> games = gameDAO.readAllGames();
-        assertEquals(new ArrayList<>(), games);
+        ArrayList<GameInfo> game = gameDAO.readAllGames();
+        assertEquals(new ArrayList<>(), game);
     }
+
     @Test
     public void createAndReadMultipleUsers() throws DataAccessException {
         UserInfo user1 = new UserInfo("user1", "pass1", "email1@example.com");
@@ -189,19 +196,7 @@ public class DataAccessTests {
         GameInfo deletedGame = gameDAO.readGame(game1.gameID());
         assertNull(deletedGame, "Game should be deleted");
     }
-    @Test
-    public void readNonExistentAuth() throws DataAccessException {
-        AuthInfo authData = authDAO.readAuth("DNE");
-        assertNull(authData, "Should return null");
-    }
-    @Test
-    public void userDeletionVerification() throws DataAccessException {
-        userDAO.createUser(userInfo);
-        userDAO.deleteAllUsers();
 
-        UserInfo deletedUser = userDAO.readUser(userInfo.username());
-        assertNull(deletedUser, "User should not exist after being deleted.");
-    }
 
 
 
