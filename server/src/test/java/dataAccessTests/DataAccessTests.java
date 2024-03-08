@@ -194,6 +194,14 @@ public class DataAccessTests {
         AuthInfo authData = authDAO.readAuth("DNE");
         assertNull(authData, "Should return null");
     }
+    @Test
+    public void userDeletionVerification() throws DataAccessException {
+        userDAO.createUser(userInfo);
+        userDAO.deleteAllUsers();
+
+        UserInfo deletedUser = userDAO.readUser(userInfo.username());
+        assertNull(deletedUser, "User should not exist after being deleted.");
+    }
 
 
 

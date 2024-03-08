@@ -15,12 +15,12 @@ public class UserSQL implements dataAccess.UserDAO {
         String cmd = "INSERT INTO user (username, password, email) VALUES (?, ?, ?)";
 
         try (Connection connect = DatabaseManager.getConnection();
-             PreparedStatement statement = connect.prepareStatement(cmd)) {
+             PreparedStatement set = connect.prepareStatement(cmd)) {
 
-            statement.setString(1, user.username());
-            statement.setString(2, hashedPassword);
-            statement.setString(3, user.email());
-            statement.executeUpdate();
+            set.setString(1, user.username());
+            set.setString(2, hashedPassword);
+            set.setString(3, user.email());
+            set.executeUpdate();
 
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage());
@@ -32,12 +32,12 @@ public class UserSQL implements dataAccess.UserDAO {
             String cmd = "SELECT * FROM user WHERE username = ?";
             try (var state = connect.prepareStatement(cmd)) {
                 state.setString(1,username);
-                ResultSet rs = state.executeQuery();
-                if(rs.next()){
+                ResultSet set = state.executeQuery();
+                if(set.next()){
                     return new UserInfo(
-                            rs.getString("username"),
-                            rs.getString("password"),
-                            rs.getString("email")
+                           set.getString("username"),
+                            set.getString("password"),
+                            set.getString("email")
                     );
                 }
                 return null;

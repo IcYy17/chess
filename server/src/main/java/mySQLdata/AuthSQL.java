@@ -22,8 +22,8 @@ public class AuthSQL implements dataAccess.AuthDAO {
             set.setString(2, uuid.toString());
             set.executeUpdate();
 
-        } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+        } catch (SQLException ex) {
+            throw new DataAccessException(ex.getMessage());
         }
         return uuid.toString();
     }
@@ -31,10 +31,10 @@ public class AuthSQL implements dataAccess.AuthDAO {
 
 
     public AuthInfo readAuth(String authToken) throws DataAccessException {
-        String sql = "SELECT username, authToken FROM auth WHERE authToken = ?";
+        String cmd = "SELECT username, authToken FROM auth WHERE authToken = ?";
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement set = conn.prepareStatement(sql)) {
+        try (Connection connect = DatabaseManager.getConnection();
+             PreparedStatement set = connect.prepareStatement(cmd)) {
 
             set.setString(1, authToken);
             try (ResultSet rs = set.executeQuery()) {

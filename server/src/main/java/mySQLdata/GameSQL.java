@@ -56,8 +56,8 @@ public class GameSQL implements dataAccess.GameDAO {
                     String gameNum = res.getString("gameName");
                     String gameInfo = res.getString("game");
 
-                    ChessGame game = new Gson().fromJson(gameInfo, ChessGame.class);
-                    return new GameInfo(retrievedGameID, whiteUser, blackUser, gameNum, game);
+                    ChessGame games = new Gson().fromJson(gameInfo, ChessGame.class);
+                    return new GameInfo(retrievedGameID, whiteUser, blackUser, gameNum, games);
                 }
             }
         } catch (SQLException ex) {
@@ -80,21 +80,21 @@ public class GameSQL implements dataAccess.GameDAO {
     }
 
     public ArrayList<GameInfo> readAllGames() throws DataAccessException {
-        final String sqlQuery = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game";
+        final String cmd = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game";
         ArrayList<GameInfo> games = new ArrayList<>();
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = conn.prepareStatement(sqlQuery);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+        try (Connection connect = DatabaseManager.getConnection();
+             PreparedStatement preparedStatement = connect.prepareStatement(cmd);
+             ResultSet set = preparedStatement.executeQuery()) {
 
-            while (resultSet.next()) {
-                int gameID = resultSet.getInt("gameID");
-                String whiteUser = resultSet.getString("whiteUsername");
-                String blackUser = resultSet.getString("blackUsername");
-                String gameNum = resultSet.getString("gameName");
-                ChessGame chessGame = new Gson().fromJson(resultSet.getString("game"), ChessGame.class);
+            while (set.next()) {
+                int gameID = set.getInt("gameID");
+                String whiteUser = set.getString("whiteUsername");
+                String blackUser = set.getString("blackUsername");
+                String gameNum = set.getString("gameName");
+                ChessGame chessGames = new Gson().fromJson(set.getString("game"), ChessGame.class);
 
-                games.add(new GameInfo(gameID, whiteUser, blackUser, gameNum, chessGame));
+                games.add(new GameInfo(gameID, whiteUser, blackUser, gameNum, chessGames));
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage());
