@@ -21,8 +21,8 @@ public class DataAccessTests {
     UserInfo userInfo = new UserInfo("test","qwer","1234@m.com");
     UserInfo hashed = new UserInfo("test",encoder.encode("qwer"),"1234@m.com");
     GameInfo game1 = new GameInfo(1,"white","black","chess1",new ChessGame());
-    GameInfo game2 = new GameInfo(1,"white","black","chess2",new ChessGame());
-    GameInfo game3 = new GameInfo(1,"white","black","chess3",new ChessGame());
+    GameInfo game2 = new GameInfo(2,"white","black","chess2",new ChessGame());
+    GameInfo game3 = new GameInfo(3,"white","black","chess3",new ChessGame());
 
     @BeforeEach
     public void start() throws DataAccessException{
@@ -63,11 +63,41 @@ public class DataAccessTests {
         assertNull(game);
     }
     @Test
+    public void positiveReadAllGames() throws DataAccessException{
+        gameDAO.createGame(game1);
+        gameDAO.createGame(game2);
+        gameDAO.createGame(game3);
+
+        ArrayList<GameInfo> actualGames = gameDAO.readAllGames();
+
+        ArrayList<GameInfo> expectedGames = new ArrayList<>();
+        for(GameInfo game : actualGames) {
+            if(game.equals(game1) || game.equals(game2) || game.equals(game3)) {
+                expectedGames.add(game);
+            }
+        }
+
+        assertEquals(expectedGames.size(), 3);
+        assertTrue(actualGames.containsAll(expectedGames) && expectedGames.containsAll(actualGames));
+
+    }
+
+
+    @Test
     public void positiveDeleteAllUsers()throws DataAccessException{
             userDAO.createUser(userInfo);
             userDAO.deleteAllUsers();
 
     }
+    @Test
+    public void negativeDeleteAllUsers() throws DataAccessException{
+        userDAO.deleteAllUsers();
+        UserInfo user = userDAO.readUser(userInfo.username());
+        assertNull(user);
+
+    }
+
+
     @Test
     public void negativeDeleteAllGames() throws DataAccessException{
         gameDAO.deleteAllGames();
@@ -93,6 +123,68 @@ public class DataAccessTests {
         AuthInfo passAuth = authDAO.readAuth(token);
         assertEquals(userInfo.username(), passAuth.username());
     }
+    @Test
+    public void positiveDeleteAuth() throws DataAccessException{
+        String token = authDAO.createAuth(userInfo.username());
+        authDAO.deleteAuthToken(token);
+    }
+    @Test
+    public void negativeDeleteAuth() throws DataAccessException{
+        authDAO.deleteAuthData();
+        AuthInfo passAuth = authDAO.readAuth(":(");
+        assertNull(passAuth);
+    }
+
+    @Test
+    public void positiveDeleteAllAuth() throws DataAccessException{
+        authDAO.createAuth(userInfo.username());
+        authDAO.deleteAuthData();
+    }
+    @Test
+    public void negativeDeleteAllAuth() throws DataAccessException{
+        authDAO.deleteAuthData();
+        AuthInfo passAuth = authDAO.readAuth(":(");
+        assertNull(passAuth);
+    }
+
+    @Test
+    public void positiveCreateGame() throws DataAccessException{
+        gameDAO.createGame(game1);
+    }
+    @Test
+    public void badCreateGame() {
+        DataAccessException exception = assertThrows(DataAccessException.class, () -> {
+            gameDAO.createGame(game1);
+            gameDAO.createGame(game1);
+        });
+    }
+    @Test
+    public void badDeleteAllGames() throws DataAccessException{
+        gameDAO.deleteAllGames();
+        ArrayList<GameInfo> games = gameDAO.readAllGames();
+        assertEquals(new ArrayList<>(), games);
+    }
+    @Test
+    public void positiveDeleteGame() throws DataAccessException{
+        gameDAO.createGame(game1);
+        gameDAO.deleteGame(game1.gameID());
+    }
+    @Test
+    public void createAndReadMultipleUsers() throws DataAccessException {
+        UserInfo user1 = new UserInfo("user1", "pass1", "email1@example.com");
+        UserInfo user2 = new UserInfo("user2", "pass2", "email2@example.com");
+        userDAO.createUser(user1);
+        userDAO.createUser(user2);
+        UserInfo retrievedUser1 = userDAO.readUser(user1.username());
+        UserInfo retrievedUser2 = userDAO.readUser(user2.username());
+        assertEquals(user1.username(), retrievedUser1.username(), "User1 was not correctly stored or retrieved.");
+        assertEquals(user2.username(), retrievedUser2.username(), "User2 was not correctly stored or retrieved.");
+    }
+
+
+
+
+
 
 
 }
