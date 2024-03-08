@@ -14,20 +14,14 @@ public class GameSQL implements dataAccess.GameDAO {
     public void createGame(GameInfo game) throws DataAccessException {
         String cmd = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement set = conn.prepareStatement(cmd)) {
-
-
+        try (Connection connect = DatabaseManager.getConnection();
+             PreparedStatement set = connect.prepareStatement(cmd)) {
             String gameStateJson = new Gson().toJson(game.game());
-
-
             set.setInt(1, game.gameID());
             set.setString(2, game.whiteUsername());
             set.setString(3, game.blackUsername());
             set.setString(4, game.gameName());
             set.setString(5, gameStateJson);
-
-            // Execute the statement as a batch (though it contains only one insert operation here)
             set.addBatch();
             set.executeBatch();
 
@@ -38,8 +32,8 @@ public class GameSQL implements dataAccess.GameDAO {
     public void deleteAllGames() throws DataAccessException {
         try (Connection set = DatabaseManager.getConnection()) {
             String cmd = "DELETE FROM game";
-            try (var statement = set.prepareStatement(cmd)) {
-                statement.executeUpdate();
+            try (var state = set.prepareStatement(cmd)) {
+                state.executeUpdate();
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage());
@@ -50,35 +44,35 @@ public class GameSQL implements dataAccess.GameDAO {
         final String cmd = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game WHERE gameID = ?";
 
         try (Connection set = DatabaseManager.getConnection();
-             PreparedStatement preparedStatement = set.prepareStatement(cmd)) {
+             PreparedStatement state = set.prepareStatement(cmd)) {
 
-            preparedStatement.setInt(1, gameID); // Directly setting integer without converting to String
-            try (ResultSet res = preparedStatement.executeQuery()) {
+            state.setInt(1, gameID);
+            try (ResultSet res = state.executeQuery()) {
                 if (res.next()) {
                     // Directly using appropriate ResultSet getters for data types
                     int retrievedGameID = res.getInt("gameID");
-                    String whiteUsername = res.getString("whiteUsername");
-                    String blackUsername = res.getString("blackUsername");
-                    String gameName = res.getString("gameName");
-                    String gameData = res.getString("game"); // Assuming 'game' is stored as a JSON string
+                    String whiteUser = res.getString("whiteUsername");
+                    String blackUser = res.getString("blackUsername");
+                    String gameNum = res.getString("gameName");
+                    String gameInfo = res.getString("game");
 
-                    ChessGame chessGame = new Gson().fromJson(gameData, ChessGame.class);
-                    return new GameInfo(retrievedGameID, whiteUsername, blackUsername, gameName, chessGame);
+                    ChessGame game = new Gson().fromJson(gameInfo, ChessGame.class);
+                    return new GameInfo(retrievedGameID, whiteUser, blackUser, gameNum, game);
                 }
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage());
         }
-        return null; // Handling the case where no game is found more explicitly
+        return null;
     }
 
 
     public void deleteGame(Integer gameID) throws DataAccessException {
         try (Connection set = DatabaseManager.getConnection()) {
             String cmd = "DELETE FROM game WHERE gameID = ?";
-            try (var statement = set.prepareStatement(cmd)) {
-                statement.setString(1,gameID.toString());
-                statement.executeUpdate();
+            try (var state = set.prepareStatement(cmd)) {
+                state.setString(1,gameID.toString());
+                state.executeUpdate();
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage());
@@ -95,17 +89,17 @@ public class GameSQL implements dataAccess.GameDAO {
 
             while (resultSet.next()) {
                 int gameID = resultSet.getInt("gameID");
-                String whiteUsername = resultSet.getString("whiteUsername");
-                String blackUsername = resultSet.getString("blackUsername");
-                String gameName = resultSet.getString("gameName");
+                String whiteUser = resultSet.getString("whiteUsername");
+                String blackUser = resultSet.getString("blackUsername");
+                String gameNum = resultSet.getString("gameName");
                 ChessGame chessGame = new Gson().fromJson(resultSet.getString("game"), ChessGame.class);
 
-                games.add(new GameInfo(gameID, whiteUsername, blackUsername, gameName, chessGame));
+                games.add(new GameInfo(gameID, whiteUser, blackUser, gameNum, chessGame));
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage());
         }
-        return games; // Always returns the list, even if it's empty
+        return games;
     }
 
 
