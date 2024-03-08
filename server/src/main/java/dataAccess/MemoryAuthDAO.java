@@ -5,7 +5,7 @@ import model.AuthInfo;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MemoryAuthDAO implements AuthDAO {
+public class MemoryAuthDAO {
     private final HashMap<String, AuthInfo> authDataMap = new HashMap<>();
     public String createAuth(String username){
         UUID uuid = UUID.randomUUID();

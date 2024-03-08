@@ -2,7 +2,6 @@ package service;
 
 import chess.ChessGame;
 import dataAccess.DataAccessException;
-import dataAccess.MemoryGameDAO;
 import model.GameInfo;
 import mySQLdata.GameSQL;
 import requests.CreateGameRequest;

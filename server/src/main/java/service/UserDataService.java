@@ -12,22 +12,21 @@ public class UserDataService {
     private final UserSQL userDAO = new UserSQL();
 
     public void clear()throws DataAccessException{
-        userDAO.deleteUsers();
+        userDAO.deleteAllUsers();
     }
 
     public String login(LoginRequest login) throws DataAccessException {
         UserInfo user = userDAO.readUser(login.username());
 
-        if (user == null || !login.password().equals(user.password())) {
+        if (user == null) {
             throw new DataAccessException("Error: unauthorized");
         }
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String hashedPassword = userDAO.readUser(login.username()).password();
 
-        if(!encoder.matches(login.password(),hashedPassword)){
+        if (!encoder.matches(login.password(), hashedPassword)) {
             throw new DataAccessException("Error: unauthorized");
         }
-
         return user.username();
     }
 
