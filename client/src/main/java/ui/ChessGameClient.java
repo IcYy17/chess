@@ -8,7 +8,7 @@ import model.AuthInfo;
 public class ChessGameClient {
     private Server server;
     private String url;
-    private boolean serverRunning;
+    private boolean serverRunning = true;
     private Status status = Status.LoggedOut;
     public ChessGameClient() {
         server = new Server("http://localhost:1234");
@@ -25,7 +25,7 @@ public class ChessGameClient {
         String[] arguments = Arrays.copyOfRange(parts, 1, parts.length);
 
         return switch (command) {
-//            case "quit" -> quit();
+            case "quit" -> quit();
 //            case "register" -> register(arguments[0], arguments[1], arguments[2]);
 //            case "login" -> login(arguments[0], arguments[1]);
 //            case "logout" -> logout();
@@ -64,7 +64,7 @@ public class ChessGameClient {
         System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE);
         System.out.println(EscapeSequences.ERASE_SCREEN);
         System.out.println(EscapeSequences.SET_TEXT_BOLD + "Welcome to CLI-Chess :)" + EscapeSequences.RESET_TEXT_BOLD_FAINT);
-        System.out.println(EscapeSequences.SET_TEXT_COLOR_RED);
+        System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW);
         System.out.println("Input 'help' for a list of commands or 'quit' to exit.");
         while(serverRunning){
             var in = scan.nextLine();
@@ -72,6 +72,10 @@ public class ChessGameClient {
             System.out.print("$>");
             System.out.println(out);
         }
+    }
+    public String quit() {
+        serverRunning = false;
+        return "Exiting CLI-Chess. Goodbye!";
     }
 
 }
