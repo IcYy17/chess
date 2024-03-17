@@ -28,7 +28,7 @@ public class GameDataService {
         ChessGame newGame = new ChessGame(); // Assuming ChessGame initialization can be done here directly.
         GameInfo newGameInfo = new GameInfo(gameId, null, null, request.gameName(), newGame);
         gameDataDAO.createGame(newGameInfo);
-        return new CreateGameResponse(gameId);
+        return new CreateGameResponse(gameId, newGameInfo.whiteUsername(), newGameInfo.blackUsername(), newGameInfo.gameName(), newGameInfo.game());
     }
 
     public void joinGame(JoinGameRequest request, String username) throws DataAccessException {
