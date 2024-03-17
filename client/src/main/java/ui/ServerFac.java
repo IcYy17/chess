@@ -70,6 +70,9 @@ public class ServerFac {
     public AuthInfo login(String username, String password) throws ResponseException {
         return newRequest("POST", "/session", new UserInfo(username, password, null), AuthInfo.class, null);
     }
+    public void logout(String token) throws ResponseException {
+        this.newRequest("DELETE", "/session", null, null, token);
+    }
 
 
 }
