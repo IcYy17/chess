@@ -3,6 +3,7 @@ package ui;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.AuthInfo;
+import model.GameInfo;
 import model.UserInfo;
 //import server.Server;
 import java.io.*;
@@ -72,6 +73,9 @@ public class ServerFac {
     }
     public void logout(String token) throws ResponseException {
         this.newRequest("DELETE", "/session", null, null, token);
+    }
+    public GameInfo createGame(String token, String gameName) throws ResponseException {
+        return newRequest("POST", "/game", new GameInfo(0, null, null, gameName, null), GameInfo.class, token);
     }
 
 

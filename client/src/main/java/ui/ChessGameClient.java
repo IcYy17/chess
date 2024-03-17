@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 
+
 public class ChessGameClient {
     private AuthInfo authInfo;
     private ServerFac server;
@@ -33,7 +34,7 @@ public class ChessGameClient {
             case "login" -> login(arguments[0], arguments[1]);
             case "logout" -> logout();
 //            case "list" -> listGames();
-//            case "create" -> createGame(Arrays.stream(arguments).collect(Collectors.joining(" ")));
+            case "create" -> arguments.length < 1 ? "Missing parameters. Usage: create <game name>" : createGame(String.join(" ", arguments));
 //            case "join" -> joinGame(Integer.parseInt(arguments[0]), arguments.length > 1 ? arguments[1] : "");
 //            case "observe" -> observeGame(Integer.parseInt(arguments[0]));
             case "help" -> help();
@@ -111,6 +112,15 @@ public class ChessGameClient {
             authInfo = null;
             status = State.LOGGEDOUT;
             return "Logged out successfully!";
+        } catch (ResponseException ex) {
+            return ex.getMessage();
+        }
+    }
+
+    public String createGame(String gameName) {
+        try {
+            var newGame = server.createGame(authInfo.authToken(), gameName);
+            return newGame.gameName() + " Game created successfully!";
         } catch (ResponseException ex) {
             return ex.getMessage();
         }
