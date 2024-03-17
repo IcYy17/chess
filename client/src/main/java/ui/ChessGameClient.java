@@ -30,7 +30,7 @@ public class ChessGameClient {
         return switch (command) {
             case "quit" -> quit();
             case "register" -> register(arguments[0], arguments[1], arguments[2]);
-//            case "login" -> login(arguments[0], arguments[1]);
+            case "login" -> login(arguments[0], arguments[1]);
 //            case "logout" -> logout();
 //            case "list" -> listGames();
 //            case "create" -> createGame(Arrays.stream(arguments).collect(Collectors.joining(" ")));
@@ -87,11 +87,22 @@ public class ChessGameClient {
     public String register(String username, String password, String email) {
         try {
             AuthInfo user = server.register(username, password, email);
-            this.authInfo = user;
-            this.status = State.LOGGEDIN;
+            authInfo = user;
+            status = State.LOGGEDIN;
             return user.username() + " is now registered for Chess!";
         } catch (ResponseException ex) {
             return ex.getMessage();
+        }
+    }
+
+    public String login(String username, String password) {
+        try {
+            AuthInfo newUser = server.login(username, password);
+            authInfo = newUser;
+            status = State.LOGGEDIN;
+            return String.format("%s logged in successfully!", newUser.username());
+        } catch (ResponseException ex) {
+            return "401".equals(ex.StatusCode()) ? "Invalid username or password." : ex.getMessage();
         }
     }
 

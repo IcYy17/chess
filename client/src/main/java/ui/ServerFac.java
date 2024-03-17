@@ -17,7 +17,7 @@ public class ServerFac {
         serverConn = url;
     }
     //
-    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String token) throws ResponseException {
+    private <T> T newRequest(String method, String path, Object request, Class<T> responseClass, String token) throws ResponseException {
         try {
             HttpURLConnection http = setupConnection(method, path, token);
             if (request != null) {
@@ -64,9 +64,12 @@ public class ServerFac {
 
 
     public AuthInfo register(String username, String password, String email) throws ResponseException {
-        var req = new UserInfo(username, password, email);
-        var path = "/user";
-        return this.makeRequest("POST", path, req, AuthInfo.class, null);
+        return newRequest("POST", "/user", new UserInfo(username, password, email), AuthInfo.class, null);
     }
+
+    public AuthInfo login(String username, String password) throws ResponseException {
+        return newRequest("POST", "/session", new UserInfo(username, password, null), AuthInfo.class, null);
+    }
+
 
 }
