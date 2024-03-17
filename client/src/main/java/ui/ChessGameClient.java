@@ -1,18 +1,21 @@
 package ui;
 
+import exception.ResponseException;
+import model.AuthInfo;
+
 import java.util.Arrays;
 import java.util.Scanner;
 
-import chess.ChessGame;
-import model.AuthInfo;
+
 public class ChessGameClient {
-    private Server server;
+    private AuthInfo authInfo;
+    private ServerFac server;
     private String url;
     private boolean serverRunning;
-    private Status status = Status.LoggedOut;
+    private State status = State.LOGGEDOUT;
     public ChessGameClient() {
-        server = new Server("http://localhost:1234");
-        this.url = "http://localhost:1234";
+        server = new ServerFac("http://localhost:8080");
+        this.url = "http://localhost:8080";
     }
     public static void main(String[] args) {
         var newClient = new ChessGameClient();
@@ -26,7 +29,7 @@ public class ChessGameClient {
 
         return switch (command) {
             case "quit" -> quit();
-//            case "register" -> register(arguments[0], arguments[1], arguments[2]);
+            case "register" -> register(arguments[0], arguments[1], arguments[2]);
 //            case "login" -> login(arguments[0], arguments[1]);
 //            case "logout" -> logout();
 //            case "list" -> listGames();
@@ -58,7 +61,7 @@ public class ChessGameClient {
     public String help() {
         StringBuilder helpMessage = new StringBuilder("Available commands:\n");
 
-        if (status == Status.LoggedIn) {
+        if (status == State.LOGGEDIN) {
             helpMessage.append("- Create <name> - Create new game\n")
                     .append("- List - List all games\n")
                     .append("- Join <id> [white-black-<empty>] - Join game\n")
@@ -80,6 +83,16 @@ public class ChessGameClient {
     public String quit() {
         serverRunning = false;
         return "Exiting CLI-Chess. Come back soon!";
+    }
+    public String register(String username, String password, String email) {
+        try {
+            AuthInfo user = server.register(username, password, email);
+            this.authInfo = user;
+            this.status = State.LOGGEDIN;
+            return user.username() + " is now registered for Chess!";
+        } catch (ResponseException ex) {
+            return ex.getMessage();
+        }
     }
 
 }
