@@ -2,10 +2,10 @@ package ui;
 
 import exception.ResponseException;
 import model.AuthInfo;
+import model.GameInfo;
 
-import java.util.Arrays;
-import java.util.Scanner;
-
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class ChessGameClient {
@@ -13,17 +13,20 @@ public class ChessGameClient {
     private ServerFac server;
     private String url;
     private boolean serverRunning;
-    private State status = State.LOGGEDOUT;
+    private State state = State.LOGGEDOUT;
+    public GameInfo gameInfo;
+
     public ChessGameClient() {
         server = new ServerFac("http://localhost:8080");
         this.url = "http://localhost:8080";
     }
+
     public static void main(String[] args) {
         var newClient = new ChessGameClient();
         newClient.run();
     }
 
-    public String parser(String in){
+    public String parser(String in) {
         String[] parts = in.toLowerCase().trim().split("\\s+");
         String command = parts.length > 0 ? parts[0] : "help";
         String[] arguments = Arrays.copyOfRange(parts, 1, parts.length);
@@ -33,8 +36,9 @@ public class ChessGameClient {
             case "register" -> register(arguments[0], arguments[1], arguments[2]);
             case "login" -> login(arguments[0], arguments[1]);
             case "logout" -> logout();
-//            case "list" -> listGames();
-            case "create" -> arguments.length < 1 ? "Missing parameters. Usage: create <game name>" : createGame(String.join(" ", arguments));
+            case "list" -> listGames();
+            case "create" ->
+                    arguments.length < 1 ? "Missing parameters. Usage: create <game name>" : createGame(String.join(" ", arguments));
 //            case "join" -> joinGame(Integer.parseInt(arguments[0]), arguments.length > 1 ? arguments[1] : "");
 //            case "observe" -> observeGame(Integer.parseInt(arguments[0]));
             case "help" -> help();
@@ -42,7 +46,8 @@ public class ChessGameClient {
         };
 
     }
-    private void run(){
+
+    private void run() {
         Scanner scan = new Scanner(System.in);
         System.out.println(EscapeSequences.SET_TEXT_COLOR_BLUE);
         System.out.println(EscapeSequences.ERASE_SCREEN);
@@ -51,7 +56,7 @@ public class ChessGameClient {
         System.out.println(EscapeSequences.SET_TEXT_COLOR_YELLOW);
         System.out.println("Input 'help' for a list of commands or 'quit' to exit.");
         serverRunning = true;
-        while(serverRunning){
+        while (serverRunning) {
             System.out.print("$>");
             var in = scan.nextLine();
             var out = parser(in);
@@ -59,10 +64,11 @@ public class ChessGameClient {
             System.out.println(out);
         }
     }
+
     public String help() {
         StringBuilder helpMessage = new StringBuilder("Available commands:\n");
 
-        if (status == State.LOGGEDIN) {
+        if (state == State.LOGGEDIN) {
             helpMessage.append("- Create <name> - Create new game\n")
                     .append("- List - List all games\n")
                     .append("- Join <id> [white-black-<empty>] - Join game\n")
@@ -85,11 +91,12 @@ public class ChessGameClient {
         serverRunning = false;
         return "Exiting CLI-Chess. Come back soon!";
     }
+
     public String register(String username, String password, String email) {
         try {
             AuthInfo user = server.register(username, password, email);
             authInfo = user;
-            status = State.LOGGEDIN;
+            state = State.LOGGEDIN;
             return user.username() + " is now registered for Chess!";
         } catch (ResponseException ex) {
             return ex.getMessage();
@@ -100,17 +107,18 @@ public class ChessGameClient {
         try {
             AuthInfo newUser = server.login(username, password);
             authInfo = newUser;
-            status = State.LOGGEDIN;
+            state = State.LOGGEDIN;
             return String.format("%s logged in successfully!", newUser.username());
         } catch (ResponseException ex) {
             return "401".equals(ex.StatusCode()) ? "Invalid username or password." : ex.getMessage();
         }
     }
+
     public String logout() {
         try {
             server.logout(authInfo.authToken());
             authInfo = null;
-            status = State.LOGGEDOUT;
+            state = State.LOGGEDOUT;
             return "Logged out successfully!";
         } catch (ResponseException ex) {
             return ex.getMessage();
@@ -125,6 +133,47 @@ public class ChessGameClient {
             return ex.getMessage();
         }
     }
+
+    public String listGames() {
+        if (this.state != State.LOGGEDIN) {
+            return "Login to view games";
+        }
+
+        try {
+            var gamesResponse = server.listGames(authInfo.authToken());
+            if (gamesResponse == null || gamesResponse.games().isEmpty()) {
+                return "No games being played :(";
+            }
+
+            StringBuilder output = new StringBuilder("List of Games:\n");
+            List<GameInfo> sortedGames = gamesResponse.games().stream()
+                    .sorted(Comparator.comparingInt(GameInfo::gameID))
+                    .collect(Collectors.toList());
+
+            for (int i = 0; i < sortedGames.size(); i++) {
+                GameInfo game = sortedGames.get(i);
+                String gameDetails = formatGameDetails(i, game);
+                output.append(gameDetails);
+            }
+
+            return output.toString();
+        } catch (ResponseException ex) {
+            return ex.getMessage();
+        }
+    }
+
+    private String formatGameDetails(int index, GameInfo game) {
+        return String.format("%s%d. gameName: %s%s, whiteUsername: %s%s, blackUsername: %s%s\n",
+                EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW,
+                index + 1,
+                EscapeSequences.SET_TEXT_ITALIC + EscapeSequences.SET_TEXT_COLOR_BLUE + game.gameName() + EscapeSequences.RESET_TEXT_ITALIC,
+                EscapeSequences.SET_TEXT_COLOR_WHITE,
+                EscapeSequences.SET_TEXT_FAINT + EscapeSequences.SET_TEXT_COLOR_GREEN + game.whiteUsername() + EscapeSequences.RESET_TEXT_COLOR,
+                EscapeSequences.SET_TEXT_BOLD,
+                EscapeSequences.SET_TEXT_FAINT + EscapeSequences.SET_TEXT_COLOR_RED + game.blackUsername() + EscapeSequences.RESET_TEXT_COLOR,
+                EscapeSequences.RESET_TEXT_BOLD_FAINT);
+    }
+
 
 
 

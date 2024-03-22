@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import response.ListGamesResponse;
 
 public class ServerFac {
     private final String serverConn;
@@ -78,5 +79,7 @@ public class ServerFac {
         return newRequest("POST", "/game", new GameInfo(0, null, null, gameName, null), GameInfo.class, token);
     }
 
-
+    public ListGamesResponse listGames(String token) throws ResponseException {
+        return this.newRequest("GET", "/game", null, ListGamesResponse.class, token);
+    }
 }
