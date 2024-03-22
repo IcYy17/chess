@@ -2,21 +2,31 @@ package clientTests;
 
 import org.junit.jupiter.api.*;
 import server.Server;
+import ui.*;
 
 
 public class ServerFacadeTests {
 
     private static Server server;
+    private static ServerFacade serverFacade;
 
     @BeforeAll
     public static void init() {
         server = new Server();
-        var port = server.run(0);
+        var port = server.run(8080);
+        server.run(port);
+        serverFacade = new ServerFacade("http://localhost:8080");
         System.out.println("Started test HTTP server on " + port);
     }
 
+    @AfterEach
+    public void resetDatabase(){
+        serverFacade.clearData();
+    }
+
     @AfterAll
-    static void stopServer() {
+    public static void tearDown() {
+        serverFacade.clearData();
         server.stop();
     }
 
@@ -25,5 +35,6 @@ public class ServerFacadeTests {
     public void sampleTest() {
         Assertions.assertTrue(true);
     }
+
 
 }

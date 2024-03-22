@@ -9,16 +9,19 @@ import model.UserInfo;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
+
+import response.JoinGameResponse;
 import response.ListGamesResponse;
 
-public class ServerFac {
+public class ServerFacade {
     private final String serverConn;
 
-    public ServerFac(String url) {
+    public ServerFacade(String url) {
         serverConn = url;
     }
     //
+
+
     private <T> T newRequest(String method, String path, Object request, Class<T> responseClass, String token) throws ResponseException {
         try {
             HttpURLConnection http = setupConnection(method, path, token);
@@ -82,4 +85,31 @@ public class ServerFac {
     public ListGamesResponse listGames(String token) throws ResponseException {
         return this.newRequest("GET", "/game", null, ListGamesResponse.class, token);
     }
+    public GameInfo joinGame(String token, int gameId, String color) throws ResponseException {
+        return this.newRequest("PUT", "/game", new JoinGameResponse(color, gameId), GameInfo.class, token);
+    }
+    public void clearData() {
+        HttpURLConnection connection = null;
+        int statusCode;
+        try {
+            URL endpoint = new URL(serverConn + "/db");
+            connection = (HttpURLConnection) endpoint.openConnection();
+            connection.setRequestMethod("DELETE");
+            connection.connect();
+            statusCode = connection.getResponseCode();
+        } catch (IOException e) {
+            System.out.println("Data clearance failed: " + e.getMessage());
+            return;
+        }
+
+        if (statusCode == HttpURLConnection.HTTP_OK) {
+            System.out.println("All data successfully cleared.");
+        } else {
+            System.out.println("Data clearance failed: Server responded with code " + statusCode);
+        }
+        if (connection != null) {
+            connection.disconnect();
+        }
+    }
+
 }
