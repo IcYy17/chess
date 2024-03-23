@@ -92,9 +92,9 @@ public class ServerFacadeTests {
     }
     @Test
     public void negativeLogin() throws ResponseException {
-        String username = "testUser";
-        String password = "testPassword";
-        String email = "test@test.com";
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
         String badPassword = "wrongPassword";
 
         AuthInfo authData = serverFacade.register(username, password, email);
@@ -108,5 +108,117 @@ public class ServerFacadeTests {
 
         Assertions.assertEquals(401, thrown.StatusCode(), "Expected 401 status code for failed login attempt.");
     }
+
+    @Test
+    public void positiveLogout() throws ResponseException {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+        AuthInfo authInfo = serverFacade.register(username, password, email);
+        Assertions.assertNotNull(authInfo, "Registration should not return null.");
+
+        serverFacade.login(username, password);
+        Assertions.assertNotNull(authInfo, "Login should succeed after registration.");
+
+    }
+
+    @Test
+    public void negativeLogout() throws ResponseException {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+        AuthInfo authInfo = serverFacade.register(username, password, email);
+        Assertions.assertNotNull(authInfo, "Registration should be successful.");
+
+        AuthInfo loginAuthInfo = serverFacade.login(username, password);
+        Assertions.assertNotNull(loginAuthInfo, "Login should be successful.");
+        Assertions.assertEquals(authInfo.username(), loginAuthInfo.username(), "Logged in username should match.");
+
+    }
+
+    @Test
+    public void positiveListGames() throws ResponseException {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+        AuthInfo authData = serverFacade.register(username, password, email);
+        Assertions.assertNotNull(authData, "Registration failed unexpectedly.");
+
+        try {
+            serverFacade.createGame(authData.authToken(), "testGame1");
+            serverFacade.createGame(authData.authToken(), "testGame2");
+            serverFacade.createGame(authData.authToken(), "testGame3");
+            var gamesList = serverFacade.listGames(authData.authToken());
+            Assertions.assertNotNull(gamesList, "Game listing should not be null.");
+        } catch (ResponseException e) {
+            Assertions.fail("Exception thrown: " + e.getMessage());
+        }
+
+
+    }
+    @Test
+    public void negativeListGames() throws ResponseException {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+        try {
+            AuthInfo authData = serverFacade.register(username, password, email);
+            Assertions.assertNotNull(authData, "Registration should succeed and return auth data.");
+
+            serverFacade.createGame(authData.authToken(), "testGame1");
+            serverFacade.createGame(authData.authToken(), "testGame2");
+            serverFacade.createGame(authData.authToken(), "testGame3");
+
+            // Attempt to list games with an incorrect authentication token
+            serverFacade.listGames("incorrectAuthToken");
+            Assertions.fail("Listing games with an incorrect token should throw a ResponseException.");
+        } catch (ResponseException e) {
+            Assertions.assertEquals(401, e.StatusCode(), "Expected 401 Unauthorized status code for incorrect auth token.");
+        }
+    }
+    @Test
+    public void positiveCreateGame() {
+
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+        AuthInfo authData;
+
+        try {
+            authData = serverFacade.register(username, password, email);
+            serverFacade.createGame(authData.authToken(), "testGame1");
+            var games = serverFacade.listGames(authData.authToken());
+
+            Assertions.assertNotNull(authData, "Registration should succeed and return non-null authData.");
+            Assertions.assertNotNull(games, "Listing games should return non-null list of games.");
+        } catch (ResponseException e) {
+            Assertions.fail("Unexpected exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void testCreateGameFail() {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+        try {
+            AuthInfo authData = serverFacade.register(username, password, email);
+            Assertions.assertNotNull(authData, "Registration should succeed and return non-null authData.");
+
+            serverFacade.createGame("Wrong Token", "testGame1");
+
+            Assertions.fail("Creating a game with an invalid token should have thrown a ResponseException.");
+        } catch (ResponseException e) {
+            Assertions.assertEquals(401, e.StatusCode(), "Expected a 401 Unauthorized status code.");
+        }
+    }
+
+
 
 }
