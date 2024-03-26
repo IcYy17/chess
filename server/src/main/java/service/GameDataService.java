@@ -32,7 +32,7 @@ public class GameDataService {
     }
 
     public void joinGame(JoinGameRequest request, String username) throws DataAccessException {
-        GameInfo game = gameDataDAO.readGame(request.gameID());
+        GameInfo game = gameDataDAO.readGame(request.gameId());
         if (game == null) {
             throw new DataAccessException("Error: bad request");
         }
@@ -44,9 +44,9 @@ public class GameDataService {
 
         String updatedBlackUsername = "BLACK".equals(request.playerColor()) ? username : game.blackUsername();
         String updatedWhiteUsername = "WHITE".equals(request.playerColor()) ? username : game.whiteUsername();
-        GameInfo updatedGame = new GameInfo(request.gameID(), updatedWhiteUsername, updatedBlackUsername, game.gameName(), game.game());
+        GameInfo updatedGame = new GameInfo(request.gameId(), updatedWhiteUsername, updatedBlackUsername, game.gameName(), game.game());
 
-        gameDataDAO.deleteGame(request.gameID());
+        gameDataDAO.deleteGame(request.gameId());
         gameDataDAO.createGame(updatedGame);
     }
 }

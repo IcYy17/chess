@@ -169,9 +169,9 @@ public class ServerFacadeTests {
             AuthInfo authData = serverFacade.register(username, password, email);
             Assertions.assertNotNull(authData, "Registration should succeed and return auth data.");
 
-            serverFacade.createGame(authData.authToken(), "testGame1");
-            serverFacade.createGame(authData.authToken(), "testGame2");
-            serverFacade.createGame(authData.authToken(), "testGame3");
+            serverFacade.createGame(authData.authToken(), "test1");
+            serverFacade.createGame(authData.authToken(), "test2");
+            serverFacade.createGame(authData.authToken(), "test3");
 
             // Attempt to list games with an incorrect authentication token
             serverFacade.listGames("incorrectAuthToken");
@@ -190,7 +190,7 @@ public class ServerFacadeTests {
 
         try {
             authData = serverFacade.register(username, password, email);
-            serverFacade.createGame(authData.authToken(), "testGame1");
+            serverFacade.createGame(authData.authToken(), "test1");
             var games = serverFacade.listGames(authData.authToken());
 
             Assertions.assertNotNull(authData, "Registration should succeed and return non-null authData.");
@@ -202,16 +202,16 @@ public class ServerFacadeTests {
 
 
     @Test
-    public void testCreateGameFail() {
+    public void negativeCreateGame() {
         String username = "newUser";
         String password = "newPass123";
         String email = "newEmail@example.com";
-
+        AuthInfo authData;
         try {
-            AuthInfo authData = serverFacade.register(username, password, email);
+            authData = serverFacade.register(username, password, email);
             Assertions.assertNotNull(authData, "Registration should succeed and return non-null authData.");
 
-            serverFacade.createGame("Wrong Token", "testGame1");
+            serverFacade.createGame("bad", "test1");
 
             Assertions.fail("Creating a game with an invalid token should have thrown a ResponseException.");
         } catch (ResponseException e) {

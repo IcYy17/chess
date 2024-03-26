@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
+import requests.JoinGameRequest;
 import response.JoinGameResponse;
 import response.ListGamesResponse;
 
@@ -29,7 +30,7 @@ public class ServerFacade {
                 writeHttp(request, http);
             }
             http.connect();
-            // throwNotReal(http);
+            // exception line?
             return responseClass != null ? readHttp(http, responseClass) : null;
         } catch (Exception ex) {
             throw new ResponseException(500, ex.getMessage());
@@ -85,8 +86,10 @@ public class ServerFacade {
     public ListGamesResponse listGames(String token) throws ResponseException {
         return this.newRequest("GET", "/game", null, ListGamesResponse.class, token);
     }
+
+    //issues with this method, 2 args vs 3
     public GameInfo joinGame(String token, int gameId, String color) throws ResponseException {
-        return this.newRequest("PUT", "/game", new JoinGameResponse(color, gameId), GameInfo.class, token);
+        return this.newRequest("PUT", "/game", new JoinGameRequest(color, gameId), GameInfo.class, token);
     }
     public void clearData() {
         HttpURLConnection connection = null;

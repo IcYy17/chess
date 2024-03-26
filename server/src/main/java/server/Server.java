@@ -140,7 +140,7 @@ public class Server {
         }
     }
 
-    public void stop(){
+    public static void stop(){
         Spark.stop();
         Spark.awaitStop();
     }
