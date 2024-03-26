@@ -21,7 +21,15 @@ public class ServerFacade {
         serverConn = url;
     }
     //
-
+    private void notSuccessfulHTTP(HttpURLConnection http) throws IOException, ResponseException {
+        var state = http.getResponseCode();
+        if (!success(state)) {
+            throw new ResponseException(1,"Error\n");
+        }
+    }
+    private boolean success(int status) {
+        return status / 100 == 2;
+    }
 
     private <T> T newRequest(String method, String path, Object request, Class<T> responseClass, String token) throws ResponseException {
         try {
@@ -31,6 +39,7 @@ public class ServerFacade {
             }
             http.connect();
             // exception line?
+            notSuccessfulHTTP(http);
             return responseClass != null ? readHttp(http, responseClass) : null;
         } catch (Exception ex) {
             throw new ResponseException(500, ex.getMessage());

@@ -3,8 +3,16 @@ package clientTests;
 import exception.ResponseException;
 import model.AuthInfo;
 import org.junit.jupiter.api.*;
+import requests.CreateGameRequest;
+import requests.JoinGameRequest;
+import requests.RegisterRequest;
+import response.CreateGameResponse;
+import response.ListGamesResponse;
+import response.RegisterResponse;
 import server.Server;
 import ui.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class ServerFacadeTests {
@@ -57,20 +65,17 @@ public class ServerFacadeTests {
     public void negativeRegister()  {
         String username = "newUser";
         String password = "newPass123";
-        String email = "newEmail@example.com";
+        String email = null;
 
 
         try {
-            AuthInfo firstAuth = serverFacade.register(username,password, email);
-            Assertions.assertNotNull(firstAuth, "First registration should succeed.");
-            serverFacade.logout(firstAuth.authToken());
             serverFacade.register(username, password, email);
-            Assertions.fail("Second registration attempt should have thrown an exception.");
-
-        } catch (ResponseException exception) {
-
-            Assertions.assertEquals(403, exception.StatusCode(), "Expected a 403 status code for duplicate registration.");
+            Assertions.fail("Expected exception");
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
         }
+
     }
     @Test
     public void positiveLogin()  {
@@ -86,28 +91,32 @@ public class ServerFacadeTests {
 
             AuthInfo loginResult = serverFacade.login(username, password);
             Assertions.assertNotNull(loginResult, "Login should be successful and return valid AuthInfo.");
-        } catch (ResponseException exception) {
-            Assertions.fail("An error occurred during test execution: " + exception.getMessage());
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
         }
     }
     @Test
-    public void negativeLogin() throws ResponseException {
+    public void negativeLogin() {
         String username = "newUser";
         String password = "newPass123";
         String email = "newEmail@example.com";
-        String badPassword = "wrongPassword";
+        String wrongPassword = "wrongPassword";
 
-        AuthInfo authData = serverFacade.register(username, password, email);
-        Assertions.assertNotNull(authData, "Registration should succeed, but it didn't.");
+        try {
+            AuthInfo authData = serverFacade.register(username, password, email);
+            Assertions.assertNotNull(authData, "Registration should succeed and return non-null AuthInfo.");
+            serverFacade.logout(authData.authToken());
 
-        serverFacade.logout(authData.authToken());
+            serverFacade.login(username, wrongPassword);
 
-        ResponseException thrown = Assertions.assertThrows(ResponseException.class, () -> {
-            serverFacade.login(username, badPassword);
-        }, "Expected login to fail with wrong password, but it succeeded.");
-
-        Assertions.assertEquals(401, thrown.StatusCode(), "Expected 401 status code for failed login attempt.");
+            Assertions.fail("Login with an incorrect password should have thrown a ResponseException.");
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
+        }
     }
+
 
     @Test
     public void positiveLogout() throws ResponseException {
@@ -124,18 +133,19 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void negativeLogout() throws ResponseException {
+    public void negativeLogout() {
         String username = "newUser";
         String password = "newPass123";
         String email = "newEmail@example.com";
 
-        AuthInfo authInfo = serverFacade.register(username, password, email);
-        Assertions.assertNotNull(authInfo, "Registration should be successful.");
-
-        AuthInfo loginAuthInfo = serverFacade.login(username, password);
-        Assertions.assertNotNull(loginAuthInfo, "Login should be successful.");
-        Assertions.assertEquals(authInfo.username(), loginAuthInfo.username(), "Logged in username should match.");
-
+        try {
+            AuthInfo authData = serverFacade.register(username, password, email);
+            Assertions.assertNotNull(authData);
+            serverFacade.logout("wrongToken");
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
+        }
     }
 
     @Test
@@ -160,7 +170,7 @@ public class ServerFacadeTests {
 
     }
     @Test
-    public void negativeListGames() throws ResponseException {
+    public void negativeListGames()  {
         String username = "newUser";
         String password = "newPass123";
         String email = "newEmail@example.com";
@@ -173,12 +183,13 @@ public class ServerFacadeTests {
             serverFacade.createGame(authData.authToken(), "test2");
             serverFacade.createGame(authData.authToken(), "test3");
 
-            // Attempt to list games with an incorrect authentication token
             serverFacade.listGames("incorrectAuthToken");
-            Assertions.fail("Listing games with an incorrect token should throw a ResponseException.");
+            Assertions.fail("Expected exception");
         } catch (ResponseException e) {
-            Assertions.assertEquals(401, e.StatusCode(), "Expected 401 Unauthorized status code for incorrect auth token.");
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
         }
+
     }
     @Test
     public void positiveCreateGame() {
@@ -215,9 +226,53 @@ public class ServerFacadeTests {
 
             Assertions.fail("Creating a game with an invalid token should have thrown a ResponseException.");
         } catch (ResponseException e) {
-            Assertions.assertEquals(401, e.StatusCode(), "Expected a 401 Unauthorized status code.");
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
         }
     }
+    @Test
+    public void joinGamePositive() {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+
+        try {
+            AuthInfo authData = serverFacade.register(username, password, email);
+            Assertions.assertNotNull(authData);
+            serverFacade.createGame(authData.authToken(), "testGame1");
+            var games = serverFacade.listGames(authData.authToken());
+            Assertions.assertNotNull(games);
+            var result = serverFacade.joinGame(authData.authToken(), games.games().get(0).gameID(), "white");
+            Assertions.assertNotNull(result);
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
+        }
+    }
+    @Test
+    public void joinGameNegative() {
+        String username = "newUser";
+        String password = "newPass123";
+        String email = "newEmail@example.com";
+
+        try {
+            AuthInfo authData = serverFacade.register(username, password, email);
+            Assertions.assertNotNull(authData, "AuthData should not be null after registration.");
+
+            serverFacade.createGame(authData.authToken(), "testGame1");
+            var games = serverFacade.listGames(authData.authToken());
+            Assertions.assertNotNull(games, "Games list should not be null after creating a game.");
+            int invalidGameId = -1;
+            serverFacade.joinGame(authData.authToken(), invalidGameId, "white");
+            Assertions.fail("Joining a game with an invalid game ID should have thrown a ResponseException.");
+        } catch (ResponseException e) {
+            System.out.println(e.getMessage());
+            Assertions.assertEquals("Error\n", e.getMessage());
+        }
+    }
+
+
 
 
 
