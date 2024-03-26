@@ -43,9 +43,9 @@ public class ChessGameClient {
             case "login" -> login(arguments[0], arguments[1]);
             case "logout" -> logout();
             case "list" -> listGames();
-            case "create" -> arguments.length < 1 ? "Missing parameters. Usage: create <game name>" : createGame(String.join(" ", arguments));
-            case "join" -> arguments.length < 1 ? "Missing parameters. Usage: join <game id> [white|black|<empty>]": joinGame(arguments[0], arguments.length < 2 ? null : arguments[1]);
- //           case "observe" -> arguments.length < 1 ? EscapeSequences.SET_TEXT_COLOR_RED +"Missing parameters. Usage: observe <game id>"+ EscapeSequences.SET_TEXT_COLOR_WHITE : observeGame(arguments[0]);
+            case "create" -> arguments.length < 1 ? "Missing arguments. Use: create <game name>" : createGame(String.join(" ", arguments));
+            case "join" -> arguments.length < 1 ? "Missing arguments. Use: join <game id> [white|black|<empty>]": joinGame(arguments[0], arguments.length < 2 ? null : arguments[1]);
+            case "observe" -> arguments.length < 1 ? "Missing arguments. Use: observe <game id>" : observeGame(arguments[0]);
             case "help" -> help();
             default -> help();
         };
@@ -221,8 +221,35 @@ public class ChessGameClient {
 
 
 
-}
+    }
 
+    public String observeGame(String gameIndex) {
+        if (this.state == State.LOGGEDOUT) {
+            return "You must be logged in to observe a game.\n";
+        }
+        int index;
+        try {
+            index = Integer.parseInt(gameIndex);
+        } catch (NumberFormatException ex) {
+            return "Invalid game ID.\n";
+        }
+
+        try {
+            var gamesResponse = server.listGames(authInfo.authToken());
+            List<GameInfo> gameList = new ArrayList<>(gamesResponse.games());
+
+            if (index <= 0 || index > gameList.size()) {
+                return "Invalid game ID.\n";
+            }
+
+            int gameID = gameList.get(index - 1).gameID();
+            this.gameInfo = server.joinGame(authInfo.authToken(), gameID, null);
+            return new LoadGameBoard(gameInfo).displayGame("");
+
+        } catch (ResponseException e) {
+            return e.getMessage();
+        }
+    }
 
 
 

@@ -91,6 +91,7 @@ public class ServerFacade {
     public GameInfo joinGame(String token, int gameId, String color) throws ResponseException {
         return this.newRequest("PUT", "/game", new JoinGameRequest(color, gameId), GameInfo.class, token);
     }
+
     public void clearData() {
         HttpURLConnection connection = null;
         int statusCode;
