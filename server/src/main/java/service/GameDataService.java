@@ -36,17 +36,19 @@ public class GameDataService {
         if (game == null) {
             throw new DataAccessException("Error: bad request");
         }
+        if (request.playerColor() !=null ) {
+            String playerColor = request.playerColor().toUpperCase();
+            if (("BLACK".equals(playerColor) && game.blackUsername() != null) ||
+                    ("WHITE".equals(playerColor) && game.whiteUsername() != null)) {
+                throw new DataAccessException("Error: already taken");
+            }
 
-        if (("BLACK".equals(request.playerColor()) && game.blackUsername() != null) ||
-                ("WHITE".equals(request.playerColor()) && game.whiteUsername() != null)) {
-            throw new DataAccessException("Error: already taken");
+            String updatedBlackUsername = "BLACK".equals(playerColor) ? username : game.blackUsername();
+            String updatedWhiteUsername = "WHITE".equals(playerColor) ? username : game.whiteUsername();
+            GameInfo updatedGame = new GameInfo(request.gameId(), updatedWhiteUsername, updatedBlackUsername, game.gameName(), game.game());
+
+            gameDataDAO.deleteGame(request.gameId());
+            gameDataDAO.createGame(updatedGame);
         }
-
-        String updatedBlackUsername = "BLACK".equals(request.playerColor()) ? username : game.blackUsername();
-        String updatedWhiteUsername = "WHITE".equals(request.playerColor()) ? username : game.whiteUsername();
-        GameInfo updatedGame = new GameInfo(request.gameId(), updatedWhiteUsername, updatedBlackUsername, game.gameName(), game.game());
-
-        gameDataDAO.deleteGame(request.gameId());
-        gameDataDAO.createGame(updatedGame);
     }
 }
