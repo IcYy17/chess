@@ -28,6 +28,8 @@ import exception.ResponseException;
 public class WebSocketFacade extends Endpoint {
 
     private Session session;
+//    private GameBoardHandler gameHandler;
+    private LoadGameBoard game;
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {
@@ -41,7 +43,94 @@ public class WebSocketFacade extends Endpoint {
     public void onError(){
     }
 
+    public WebSocketFacade(String url, LoadGameBoard game) throws ResponseException {
+        try {
+            this.game = game;
+            url = url.replace("http://", "ws://") + "/connect";
+            WebSocketContainer container=ContainerProvider.getWebSocketContainer();
+            this.session = container.connectToServer(this, new URI(url));
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage(message);
+                }
+            });
+        } catch (DeploymentException | IOException | URISyntaxException e) {
+            throw new ResponseException(500, "Failed: 500 Failed to connect to the server");
+        }
+    }
 
+    //changed
+    public void joinPlayer(String authToken, Integer gameID, String username, ChessGame.TeamColor playerColor) {
+        var joinUserCommand = new JoinUserCommand(authToken);
+        joinUserCommand.setGameID(gameID);
+        joinUserCommand.setUsername(username);
+        joinUserCommand.setPlayerColor(playerColor);
+        sendMessage(joinUserCommand);
+    }
+
+    public void joinObserver(String authToken, Integer gameID, String username) {
+        var obs = new ObserverCommand(authToken);
+        obs.setGameID(gameID);
+        obs.setUsername(username);
+        sendMessage(obs);
+    }
+
+    public void makeMove(String authToken, Integer gameID, ChessMove move) {
+        var mm = new MakeMoveCommand(authToken);
+        mm.setGameID(gameID);
+        mm.setMove(move);
+        sendMessage(mm);
+    }
+
+    public void leaveGame(String authToken, Integer gameID) {
+        var leave = new ExitGameCommand(authToken);
+        leave.setGameID(gameID);
+        sendMessage(leave);
+    }
+
+    public void resignGame(String authToken, Integer gameID) {
+        var resign = new ResignCommand(authToken);
+        resign.setGameID(gameID);
+        sendMessage(resign);
+    }
+
+    public void receivedMessage(String message) {
+        var gs = new Gson();
+        var jsonPart = gs.fromJson(message, JsonElement.class);
+        var jsonObject = jsonPart.getAsJsonObject();
+        var messagePart = jsonObject.get("serverMessageType").getAsString();
+
+        switch (messagePart) {
+            case "LOAD_GAME":
+                var GameMessage = gs.fromJson(jsonObject, LoadMessage.class);
+                game.updateGame(GameMessage.getGame(), GameMessage.getWhiteUser(), GameMessage.getBlackUser());
+                break;
+            case "NOTIFICATION":
+                var notification = gs.fromJson(jsonObject, NotificationMessage.class);
+                game.printMessage(notification.getMessage());
+                break;
+            case "ERROR":
+                var error = gs.fromJson(jsonObject, ErrorMessage.class);
+                game.printMessage(error.getErrorMessage());
+                break;
+            default:
+                System.out.println("Unknown: " + messagePart);
+                break;
+        }
+    }
+
+    private void sendMessage(Object message) {
+        if (this.session != null && this.session.isOpen()) {
+            try {
+                this.session.getBasicRemote().sendText(new Gson().toJson(message));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Error: Session is either null or closed.");
+        }
+    }
 
 
 
