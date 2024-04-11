@@ -2,8 +2,8 @@ package webSocketMessages.serverMessages;
 import chess.ChessGame;
 public class LoadMessage extends ServerMessage{
     private ChessGame game;
-    private String whiteUser;
-    private String blackUser;
+    private String whiteUsername;
+    private String blackUsername;
 
     public LoadMessage(ServerMessageType message) {
         super(message);
@@ -16,22 +16,22 @@ public class LoadMessage extends ServerMessage{
         return game;
     }
     public void setWhiteUser(String whiteUsername) {
-        this.whiteUser = whiteUsername;
+        this.whiteUsername = whiteUsername;
     }
 
     public String getBlackUser() {
-        return blackUser;
+        return blackUsername;
     }
 
 
     public String getWhiteUser() {
-        return whiteUser;
+        return whiteUsername;
     }
 
 
 
     public void setBlackUser(String blackUsername) {
-        this.blackUser = blackUsername;
+        this.blackUsername = blackUsername;
     }
 
 }

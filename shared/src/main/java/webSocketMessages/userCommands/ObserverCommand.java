@@ -2,18 +2,18 @@ package webSocketMessages.userCommands;
 
 public class ObserverCommand extends UserGameCommand{
     private Integer gameID;
-    private String user;
+    private String username;
 
     public ObserverCommand(String authToken) {
         super(authToken);
         this.commandType = CommandType.JOIN_OBSERVER;
     }
     public void setUsername(String username) {
-        this.user = username;
+        this.username = username;
     }
 
     public String getUsername() {
-        return user;
+        return username;
     }
     public Integer getGameID() {
         return gameID;

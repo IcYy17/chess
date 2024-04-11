@@ -1,23 +1,28 @@
 package server;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
+import dataAccess.WebSocketAccess;
 import requests.*;
 import response.*;
 import service.AuthDataService;
 import service.GameDataService;
 import service.UserDataService;
+import server.WebsocketHandler;
 import spark.*;
 
 public class Server {
     private final UserDataService userDataService = new UserDataService();
     private final AuthDataService authDataService = new AuthDataService();
     private final GameDataService gameDataService = new GameDataService();
+    private final WebsocketHandler websocketHandler = new WebsocketHandler();
+
 
 
     public int run(int desiredPort) {
 
         Spark.port(desiredPort);
         Spark.staticFiles.location("web");
+        Spark.webSocket("/connect",websocketHandler);
         Spark.delete("/db", this::clear);
         Spark.get("/game", this::listGames);
         Spark.put("/game",this::joinGame);
