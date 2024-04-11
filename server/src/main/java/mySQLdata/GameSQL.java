@@ -49,7 +49,6 @@ public class GameSQL implements dataAccess.GameDAO {
             state.setInt(1, gameID);
             try (ResultSet res = state.executeQuery()) {
                 if (res.next()) {
-                    // Directly using appropriate ResultSet getters for data types
                     int retrievedGameID = res.getInt("gameID");
                     String whiteUser = res.getString("whiteUsername");
                     String blackUser = res.getString("blackUsername");

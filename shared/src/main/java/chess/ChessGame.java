@@ -31,13 +31,14 @@ public class ChessGame {
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
+        turn  = TeamColor.WHITE;
     }
 
     /**
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        return turn;
+        return this.turn;
     }
 
     /**
@@ -46,7 +47,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        turn = team;
+        this.turn = team;
     }
 
     /**
@@ -54,7 +55,8 @@ public class ChessGame {
      */
     public enum TeamColor {
         WHITE,
-        BLACK
+        BLACK,
+        FINISHED
     }
 
     /**

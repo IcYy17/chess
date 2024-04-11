@@ -22,9 +22,7 @@ public class ChessGameClient {
 
     public ChessGameClient() {
         server = new ServerFacade("http://localhost:8080");
-        this.url = "http://localhost:8080/";
-        this.db = new Server();
-        db.run(8080);
+        this.url = "http://localhost:8080";
     }
 
     public static void main(String[] args) throws ResponseException {
@@ -211,10 +209,15 @@ public class ChessGameClient {
             }
 
             int gameID = gameList.get(index - 1).gameID();
-            this.gameInfo = server.joinGame(authInfo.authToken(), gameID, color);
-            String displayColor = (color == null || color.isEmpty()) ? "white" : color;
+//            String displayColor = (color == null || color.isEmpty()) ? "white" : color;
 
-            return new LoadGameBoard(gameInfo).displayGame(displayColor);
+//            return new LoadGameBoard(gameInfo).displayGame(displayColor);
+
+            this.gameInfo = server.joinGame(authInfo.authToken(), gameID, color);
+            GameInfo game = gameList.get(index -1);
+            new LoadGameBoard(game, this.url, this.authInfo, color).startGame();
+            return "";
+
         } catch (ResponseException e) {
             return e.getMessage();
         }
@@ -244,7 +247,10 @@ public class ChessGameClient {
 
             int gameID = gameList.get(index - 1).gameID();
             this.gameInfo = server.joinGame(authInfo.authToken(), gameID, null);
-            return new LoadGameBoard(gameInfo).displayGame("");
+           // return new LoadGameBoard(gameInfo).displayGame("");
+            GameInfo game = gameList.get(index -1);
+            new LoadGameBoard(game, this.url, this.authInfo, null).startGame();
+            return "";
 
         } catch (ResponseException e) {
             return e.getMessage();

@@ -5,8 +5,8 @@ public class LoadMessage extends ServerMessage{
     private String whiteUsername;
     private String blackUsername;
 
-    public LoadMessage(ServerMessageType message) {
-        super(message);
+    public LoadMessage(ServerMessageType type) {
+        super(type);
         this.serverMessageType = ServerMessageType.LOAD_GAME;
     }
     public void setGame(ChessGame game) {
