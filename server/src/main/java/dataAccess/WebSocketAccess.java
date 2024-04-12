@@ -92,5 +92,95 @@ public class WebSocketAccess implements WebSocketDAO {
         }
     }
 
+    //add resign, get data, user from auth and helpers
+    public String resignGame(int gameID, String authToken) throws DataAccessException {
+        try (Connection connect = DatabaseManager.getConnection()) {
 
+            String newSql = "SELECT * FROM game WHERE gameID = ?";
+            PreparedStatement state = connect.prepareStatement(newSql);
+
+            state.setInt(1, gameID);
+            ResultSet set = state.executeQuery();
+            if (set.next()) {
+                ChessGame game = convertJsonToChessGame(set.getString("game"));
+                if (game.getTeamTurn() == ChessGame.TeamColor.FINISHED) {
+                    throw new DataAccessException("Bad Request, game is now over");
+                }
+                game.setTeamTurn(ChessGame.TeamColor.FINISHED);
+                String whiteUsername = set.getString("whiteUsername");
+                String blackUsername = set.getString("blackUsername");
+
+                if (whiteUsername.equals(getAuth(authToken).username())) {
+                    whiteUsername = null;
+                } else if (blackUsername.equals(getAuth(authToken).username())) {
+                    blackUsername = null;
+                } else {
+                    throw new DataAccessException("Unauthorized, no player in the game");
+                }
+                String sql2 = "UPDATE game SET whiteUsername = ?, blackUsername = ?, game = ? WHERE gameID = ?";
+                PreparedStatement state2 = connect.prepareStatement(sql2);
+
+                state2.setString(1, whiteUsername);
+                state2.setString(2, blackUsername);
+                state2.setString(3, new Gson().toJson(game));
+                state2.setInt(4, gameID);
+
+                state2.executeUpdate();
+            }
+            return getAuth(authToken).username();
+        } catch (SQLException | DataAccessException e) {
+            throw new DataAccessException("Error: Server Error");
+        }
+    }
+
+    public GameInfo getGameData(int gameID, String authToken) {
+        try (Connection connect = DatabaseManager.getConnection()) {
+
+            String newSql = "SELECT * FROM game WHERE gameID = ?";
+            PreparedStatement state = connect.prepareStatement(newSql);
+
+            state.setInt(1, gameID);
+            ResultSet set = state.executeQuery();
+            if (set.next()) { return createGameDataFromResultSet(set); }
+
+            return null;
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getUsernameFromAuthToken(String authToken) {
+        try {
+//            String auth = new token;
+            return getAuth(authToken).username();
+
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private AuthInfo getAuth(String authToken) throws SQLException, DataAccessException {
+        try (Connection connect = DatabaseManager.getConnection()) {
+            String newSql = "SELECT * FROM auth WHERE authToken = ?";
+
+            PreparedStatement state = connect.prepareStatement(newSql);
+            state.setString(1, authToken);
+            ResultSet set = state.executeQuery();
+
+            if (set.next()) {
+                return new AuthInfo(set.getString("username"), set.getString("authToken"));
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private ChessGame convertJsonToChessGame(String json) {
+        Gson gson = new Gson();
+        return gson.fromJson(json, ChessGame.class);
+    }
+
+    private GameInfo createGameDataFromResultSet(ResultSet resultSet) throws SQLException {
+        return new GameInfo( resultSet.getInt("gameID"), resultSet.getString("whiteUsername"), resultSet.getString("blackUsername"), resultSet.getString("gameName"),  convertJsonToChessGame(resultSet.getString("game")));
+    }
 }
