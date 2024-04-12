@@ -43,7 +43,7 @@ public class LoadGameBoard implements GameBoardHandler {
         if (isObserver) {
             webSocketFacade.joinObserver(authData.authToken(), gameData.gameID(), authData.username());
         } else {
-            webSocketFacade.joinPlayer(authData.authToken(), gameData.gameID(), authData.username(), convertTeamColor());
+            webSocketFacade.joinPlayer(authData.authToken(), gameData.gameID(), authData.username(), convertColor());
         }
         System.out.println(EscapeSequences.SET_TEXT_BOLD + "Welcome to " + gameData.gameName() + " game!" + EscapeSequences.RESET_TEXT_BOLD_FAINT + " (Type 'help' for a list of commands or 'quit' to exit the program.)");
 
@@ -67,7 +67,7 @@ public class LoadGameBoard implements GameBoardHandler {
             case "leave" -> leaveGame();
             case "redraw", "redrawing \n" -> displayGame(this.color);
             case "move" -> args.length != 2 ? "Invalid command. Use: move <from> <to>." : makeMove(input);
-            case "highlight", "highlight legal moves" -> args.length != 1 ? "Invalid highlight command. Usage: highlight <position>." : highlightLegalMoves(args[0]);
+            case "highlight", "highlight legal moves" -> args.length != 1 ? "Invalid highlight command. Usage: highlight <position>." : highlightMoves(args[0]);
             default -> help();
         };
     }
@@ -99,7 +99,152 @@ public class LoadGameBoard implements GameBoardHandler {
         return "You left the game.";
     }
 
+    private String makeMove(String move) {
+        if (gameData.game().getTeamTurn() != convertColor()) {
+            return "It is not your turn.";
+        }
 
+        String[] moveParts = move.split(" ");
+        String start = moveParts[1];
+        String end = moveParts[2];
+        if (!start.matches("[a-h][1-8]") || !end.matches("[a-h][1-8]")) {
+            return "Invalid move. Please enter a move in the format 'move <from> <to>' where <from> and <to> are positions on the board in the format 'a1' to 'h8'.";
+        }
+
+        ChessPosition startPosition = convertToRealPosition(start);
+        ChessPosition endPosition = convertToRealPosition(end);
+        Collection<ChessMove> possibleMoves = gameData.game().validMoves(startPosition);
+        if (possibleMoves == null || !possibleMoves.contains(new ChessMove(startPosition, endPosition, null))) {
+            return "Invalid move. Please enter a move in the format 'move <from> <to>'.";
+        }
+
+        ChessPiece.PieceType piecePromotion = null;
+        if (gameData.game().getBoard().getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN && (endPosition.getRow() == 0 || endPosition.getRow() == 7)) {
+            System.out.println("What would you like to promote to? (queen, rook, bishop, knight)");
+            try (Scanner inputScanner = new Scanner(System.in)) {
+                String promotionChoice = inputScanner.nextLine();
+                switch (promotionChoice) {
+                    case "queen":
+                        piecePromotion = ChessPiece.PieceType.QUEEN;
+                        break;
+                    case "rook":
+                        piecePromotion = ChessPiece.PieceType.ROOK;
+                        break;
+                    case "bishop":
+                        piecePromotion = ChessPiece.PieceType.BISHOP;
+                        break;
+                    case "knight":
+                        piecePromotion = ChessPiece.PieceType.KNIGHT;
+                        break;
+                    default:
+                        return "Invalid promotion. Please try again.";
+                }
+            }
+        }
+
+        ChessMove moveExecuted = new ChessMove(startPosition, endPosition, piecePromotion);
+        webSocketFacade.makeMove(authData.authToken(), gameData.gameID(), moveExecuted);
+        return "You have made the move " + start + " to " + end + ".";
+    }
+
+
+    private String resign() {
+        if (isObserver) {
+            return "Observers cannot resign. Please leave the game instead.";
+        }
+
+        // Check if the game has finished or if the other player has already left or resigned
+        ChessGame.TeamColor currentTurn = gameData.game().getTeamTurn();
+        if (currentTurn == ChessGame.TeamColor.FINISHED) {
+            return "The game has already ended.";
+        }
+
+        boolean isOtherPlayerAbsent = (Objects.equals(this.color, "white") && gameData.blackUsername() == null) ||
+                (Objects.equals(this.color, "black") && gameData.whiteUsername() == null);
+        if (isOtherPlayerAbsent) {
+            return "The other player has already resigned or left the game.";
+        }
+
+        // Confirm resignation from the user
+        System.out.println("Are you sure you want to resign? (yes/no)");
+        String userResponse = scanner.nextLine();
+        if (!userResponse.equalsIgnoreCase("yes") && !userResponse.equalsIgnoreCase("y")) {
+            return "Resignation cancelled.";
+        }
+
+        resignGame();  // Execute resignation
+        return "You have resigned the game.";
+    }
+
+
+    private void resignGame(){
+        isRunning = false;
+        webSocketFacade.resignGame(this.authData.authToken(), this.gameData.gameID());
+    }
+
+    private String quit(){
+        isRunning = false;
+        if (this.gameData != null) {
+            webSocketFacade.leaveGame(this.authData.authToken(), this.gameData.gameID());
+        }
+        webSocketFacade.onClose();
+        return "Come back Soon!";
+    }
+
+    private ChessPosition convertToRealPosition(String input) {
+        char columnChar = input.charAt(0);
+        int row = Character.getNumericValue(input.charAt(1));
+        int column = 8 - (columnChar - 'a');
+        return new ChessPosition(row, column);
+    }
+
+    private String highlightMoves(String position){
+
+        if (this.gameData.game().getTeamTurn() != convertColor()) {
+            return "It is not your turn.";
+        }
+        var pos = convertToRealPosition(position);
+        if (pos == null) {
+            return "Invalid position. Please try again.";
+        }
+        var validMoves = gameData.game().validMoves(pos);
+        if (validMoves == null) {
+            return "Invalid position. Please try again.";
+        }
+        var output = "Legal moves for " + position + ": ";
+        this.highlightPosition = pos;
+        this.highlightMoves = validMoves.stream().map(move -> move.getEndPosition()).collect(Collectors.toList());
+        output = displayBlackBoard();
+        this.highlightPosition = null;
+        this.highlightMoves = null;
+        return output;
+    }
+    private ChessGame.TeamColor convertColor(){
+        if (this.color == null) {
+            return null;
+        }
+
+        if (this.color.equalsIgnoreCase("white")) {
+            return ChessGame.TeamColor.WHITE;
+        } else {
+            return ChessGame.TeamColor.BLACK;
+        }
+    }
+
+    @Override
+    public void updateGame(ChessGame game, String whiteUsername, String blackUsername) {
+        var UserColor = Boolean.TRUE.equals(isObserver) ? "Observer" : this.color;
+        this.gameData = new GameInfo(this.gameData.gameID(), whiteUsername, blackUsername, this.gameData.gameName(), game);
+        System.out.println("\nGameUpdate\n" + displayGame(this.color));
+        System.out.print(EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW + UserColor + " >> " + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR);
+    }
+
+    @Override
+    public void printMessage(String message) {
+        var UserColor = isObserver ? "Observer" : this.color;
+        System.out.println("\nINCOMING MESSAGE >>>> " + message);
+        System.out.print(EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW + UserColor + " >> " + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR);
+    }
 
 
 
@@ -119,13 +264,11 @@ public class LoadGameBoard implements GameBoardHandler {
         return output + "\n" + "It is " + turn + "'s turn.\n";
     }
 
-
     private String displayBlackBoard() {
-        var gameInfo = this.gameData.game();
-        var board = gameInfo.getBoard();
+        ChessGame gameInfo = this.gameData.game();
+        ChessBoard board = gameInfo.getBoard();
 
-        StringBuilder output = new StringBuilder(EscapeSequences.RESET_ALL);
-
+        StringBuilder output = new StringBuilder();
         output.append(EscapeSequences.SET_TEXT_BOLD)
                 .append(displaySides())
                 .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
@@ -133,26 +276,28 @@ public class LoadGameBoard implements GameBoardHandler {
 
         for (int i = 7; i >= 0; i--) {
             output.append(EscapeSequences.SET_TEXT_BOLD)
-                    .append(i +1)
+                    .append(i + 1)
                     .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
                     .append(" ");
 
             for (int j = 7; j >= 0; j--) {
-                var piece = board.getPiece(new ChessPosition(i + 1, j + 1));
-                boolean isEvenSquare = (i + j) % 2 == 0;
-                String bgColor = isEvenSquare ? EscapeSequences.SET_BG_COLOR_DARK_GREY : EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
-                String fgColor = piece != null && piece.getTeamColor().toString().equals("WHITE") ? EscapeSequences.SET_TEXT_COLOR_WHITE : EscapeSequences.SET_TEXT_COLOR_BLACK;
-
-                output.append(bgColor)
-                        .append(fgColor)
-                        .append(displayPiece(piece))
-                        .append(EscapeSequences.RESET_BG_COLOR)
-                        .append(EscapeSequences.RESET_TEXT_COLOR);
+                ChessPiece piece = board.getPiece(new ChessPosition(i + 1, j + 1));
+                if (highlightPosition != null && highlightPosition.getRow() == i && highlightPosition.getColumn() == j) {
+                    output.append(EscapeSequences.SET_BG_COLOR_YELLOW)
+                            .append(displayPiece(piece))
+                            .append(EscapeSequences.SET_BG_COLOR_DARK_GREY);
+                } else if (highlightMoves != null && highlightMoves.contains(new ChessPosition(i + 1, j + 1))) {
+                    output.append(EscapeSequences.SET_BG_COLOR_GREEN)
+                            .append(displayPiece(piece))
+                            .append(EscapeSequences.SET_BG_COLOR_DARK_GREY);
+                } else {
+                    output.append((i + j) % 2 == 0 ? EscapeSequences.SET_BG_COLOR_DARK_GREY : EscapeSequences.SET_BG_COLOR_RED)
+                            .append(displayPiece(piece));
+                }
             }
-
             output.append(EscapeSequences.SET_BG_COLOR_DARK_GREY)
                     .append(EscapeSequences.SET_TEXT_BOLD)
-                    .append(i +1)
+                    .append(i + 1)
                     .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
                     .append("\n");
         }
@@ -162,10 +307,56 @@ public class LoadGameBoard implements GameBoardHandler {
                 .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
                 .append(EscapeSequences.SET_BG_COLOR_DARK_GREY)
                 .append(EscapeSequences.RESET_ALL);
-        output.append(EscapeSequences.RESET_TEXT_COLOR).append(EscapeSequences.RESET_TEXT_BOLD_FAINT);
 
         return output.toString();
     }
+
+//    private String displayBlackBoard() {
+//        var gameInfo = this.gameData.game();
+//        var board = gameInfo.getBoard();
+//
+//        StringBuilder output = new StringBuilder(EscapeSequences.RESET_ALL);
+//
+//        output.append(EscapeSequences.SET_TEXT_BOLD)
+//                .append(displaySides())
+//                .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
+//                .append("\n");
+//
+//        for (int i = 7; i >= 0; i--) {
+//            output.append(EscapeSequences.SET_TEXT_BOLD)
+//                    .append(i +1)
+//                    .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
+//                    .append(" ");
+//
+//            for (int j = 7; j >= 0; j--) {
+//                var piece = board.getPiece(new ChessPosition(i + 1, j + 1));
+//                boolean isEvenSquare = (i + j) % 2 == 0;
+//                String bgColor = isEvenSquare ? EscapeSequences.SET_BG_COLOR_DARK_GREY : EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
+//                String fgColor = piece != null && piece.getTeamColor().toString().equals("WHITE") ? EscapeSequences.SET_TEXT_COLOR_WHITE : EscapeSequences.SET_TEXT_COLOR_BLACK;
+//
+//                output.append(bgColor)
+//                        .append(fgColor)
+//                        .append(displayPiece(piece))
+//                        .append(EscapeSequences.RESET_BG_COLOR)
+//                        .append(EscapeSequences.RESET_TEXT_COLOR);
+//            }
+//
+//            output.append(EscapeSequences.SET_BG_COLOR_DARK_GREY)
+//                    .append(EscapeSequences.SET_TEXT_BOLD)
+//                    .append(i +1)
+//                    .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
+//                    .append("\n");
+//        }
+//
+//        output.append(EscapeSequences.SET_TEXT_BOLD)
+//                .append(displaySides())
+//                .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
+//                .append(EscapeSequences.SET_BG_COLOR_DARK_GREY)
+//                .append(EscapeSequences.RESET_ALL);
+//        output.append(EscapeSequences.RESET_TEXT_COLOR).append(EscapeSequences.RESET_TEXT_BOLD_FAINT);
+//
+//        return output.toString();
+//    }
 
 
 
