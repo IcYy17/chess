@@ -4,6 +4,8 @@ import chess.ChessMove;
 
 public class MakeMoveCommand extends UserGameCommand {
     private Integer gameID;
+
+    //move wont work but works for tests, makeMove works but not for tests
     private ChessMove move;
 
 

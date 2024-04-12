@@ -76,11 +76,12 @@ public class WebSocketFacade extends Endpoint {
         sendMessage(obs);
     }
 
+    //changed move to makeMove - game works but tests fail...
     public void makeMove(String authToken, Integer gameID, ChessMove move) {
-        var mm = new MakeMoveCommand(authToken);
-        mm.setGameID(gameID);
-        mm.setMove(move);
-        sendMessage(mm);
+        var makeMoveCommand = new MakeMoveCommand(authToken);
+        makeMoveCommand.setGameID(gameID);
+        makeMoveCommand.setMove(move);
+        sendMessage(makeMoveCommand);
     }
 
     public void leaveGame(String authToken, Integer gameID) {
