@@ -5,13 +5,11 @@ import exception.ResponseException;
 import model.AuthInfo;
 import model.GameInfo;
 import model.UserInfo;
-//import server.Server;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 import requests.JoinGameRequest;
-import response.JoinGameResponse;
 import response.ListGamesResponse;
 
 public class ServerFacade {

@@ -3,7 +3,7 @@ package ui;
 import exception.ResponseException;
 import model.AuthInfo;
 import model.GameInfo;
-import server.Server;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,7 +17,6 @@ public class ChessGameClient {
     private boolean serverRunning;
     private State state = State.LOGGEDOUT;
     public GameInfo gameInfo;
-    public Server db;
 
 
     public ChessGameClient() {
@@ -96,7 +95,6 @@ public class ChessGameClient {
         }
         this.state = State.LOGGEDOUT;
         this.serverRunning = false;
-        Server.stop();
         return "Exiting CLI-Chess. Come back soon!";
     }
 

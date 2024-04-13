@@ -28,7 +28,6 @@ import exception.ResponseException;
 public class WebSocketFacade extends Endpoint {
 
     private Session session;
-//    private GameBoardHandler gameHandler;
     private LoadGameBoard game;
 
     @Override
