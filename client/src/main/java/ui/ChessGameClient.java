@@ -116,7 +116,7 @@ public class ChessGameClient {
             state = State.LOGGEDIN;
             return String.format("%s logged in successfully!", newUser.username());
         } catch (ResponseException ex) {
-            return "401".equals(ex.StatusCode()) ? "Invalid username or password." : ex.getMessage();
+            return "401".equals(ex.statusCode()) ? "Invalid username or password." : ex.getMessage();
         }
     }
 

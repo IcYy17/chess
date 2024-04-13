@@ -153,7 +153,6 @@ public class LoadGameBoard implements GameBoardHandler {
             return "Observers cannot resign. Please leave the game instead.";
         }
 
-        // Check if the game has finished or if the other player has already left or resigned
         ChessGame.TeamColor currentTurn = gameData.game().getTeamTurn();
         if (currentTurn == ChessGame.TeamColor.FINISHED) {
             return "The game has already ended.";
@@ -165,14 +164,14 @@ public class LoadGameBoard implements GameBoardHandler {
             return "The other player has already resigned or left the game.";
         }
 
-        // Confirm resignation from the user
+
         System.out.println("Are you sure you want to resign? (yes/no)");
         String userResponse = scanner.nextLine();
         if (!userResponse.equalsIgnoreCase("yes") && !userResponse.equalsIgnoreCase("y")) {
             return "Resignation cancelled.";
         }
 
-        resignGame();  // Execute resignation
+        resignGame();
         return "You have resigned the game.";
     }
 
@@ -233,17 +232,17 @@ public class LoadGameBoard implements GameBoardHandler {
 
     @Override
     public void updateGame(ChessGame game, String whiteUsername, String blackUsername) {
-        var UserColor = Boolean.TRUE.equals(isObserver) ? "Observer" : this.color;
+        var userColor = Boolean.TRUE.equals(isObserver) ? "Observer" : this.color;
         this.gameData = new GameInfo(this.gameData.gameID(), whiteUsername, blackUsername, this.gameData.gameName(), game);
         System.out.println("\nGameUpdate\n" + displayGame(this.color));
-        System.out.print(EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW + UserColor + " >> " + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.print(EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW + userColor + " >> " + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR);
     }
 
     @Override
     public void printMessage(String message) {
-        var UserColor = isObserver ? "Observer" : this.color;
+        var userColor = isObserver ? "Observer" : this.color;
         System.out.println("\nINCOMING MESSAGE >>>> " + message);
-        System.out.print(EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW + UserColor + " >> " + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR);
+        System.out.print(EscapeSequences.SET_TEXT_BOLD + EscapeSequences.SET_TEXT_COLOR_YELLOW + userColor + " >> " + EscapeSequences.RESET_TEXT_BOLD_FAINT + EscapeSequences.RESET_TEXT_COLOR);
     }
 
 
@@ -310,53 +309,6 @@ public class LoadGameBoard implements GameBoardHandler {
 
         return output.toString();
     }
-
-//    private String displayBlackBoard() {
-//        var gameInfo = this.gameData.game();
-//        var board = gameInfo.getBoard();
-//
-//        StringBuilder output = new StringBuilder(EscapeSequences.RESET_ALL);
-//
-//        output.append(EscapeSequences.SET_TEXT_BOLD)
-//                .append(displaySides())
-//                .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
-//                .append("\n");
-//
-//        for (int i = 7; i >= 0; i--) {
-//            output.append(EscapeSequences.SET_TEXT_BOLD)
-//                    .append(i +1)
-//                    .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
-//                    .append(" ");
-//
-//            for (int j = 7; j >= 0; j--) {
-//                var piece = board.getPiece(new ChessPosition(i + 1, j + 1));
-//                boolean isEvenSquare = (i + j) % 2 == 0;
-//                String bgColor = isEvenSquare ? EscapeSequences.SET_BG_COLOR_DARK_GREY : EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
-//                String fgColor = piece != null && piece.getTeamColor().toString().equals("WHITE") ? EscapeSequences.SET_TEXT_COLOR_WHITE : EscapeSequences.SET_TEXT_COLOR_BLACK;
-//
-//                output.append(bgColor)
-//                        .append(fgColor)
-//                        .append(displayPiece(piece))
-//                        .append(EscapeSequences.RESET_BG_COLOR)
-//                        .append(EscapeSequences.RESET_TEXT_COLOR);
-//            }
-//
-//            output.append(EscapeSequences.SET_BG_COLOR_DARK_GREY)
-//                    .append(EscapeSequences.SET_TEXT_BOLD)
-//                    .append(i +1)
-//                    .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
-//                    .append("\n");
-//        }
-//
-//        output.append(EscapeSequences.SET_TEXT_BOLD)
-//                .append(displaySides())
-//                .append(EscapeSequences.RESET_TEXT_BOLD_FAINT)
-//                .append(EscapeSequences.SET_BG_COLOR_DARK_GREY)
-//                .append(EscapeSequences.RESET_ALL);
-//        output.append(EscapeSequences.RESET_TEXT_COLOR).append(EscapeSequences.RESET_TEXT_BOLD_FAINT);
-//
-//        return output.toString();
-//    }
 
 
 

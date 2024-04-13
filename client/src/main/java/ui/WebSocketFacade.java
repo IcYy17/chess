@@ -103,8 +103,8 @@ public class WebSocketFacade extends Endpoint {
 
         switch (messagePart) {
             case "LOAD_GAME":
-                var GameMessage = gs.fromJson(jsonObject, LoadMessage.class);
-                game.updateGame(GameMessage.getGame(), GameMessage.getWhiteUser(), GameMessage.getBlackUser());
+                var gameMessage = gs.fromJson(jsonObject, LoadMessage.class);
+                game.updateGame(gameMessage.getGame(), gameMessage.getWhiteUser(), gameMessage.getBlackUser());
                 break;
             case "NOTIFICATION":
                 var notification = gs.fromJson(jsonObject, NotificationMessage.class);
